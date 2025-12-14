@@ -134,3 +134,39 @@ $$ language plpgsql security definer;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Add translation preferences to users table
+alter table public.users add column if not exists translation_preferences jsonb default '{}'::jsonb;
+
+-- Create translation cache table for performance optimization
+create table if not exists public.translation_cache (
+  id uuid default uuid_generate_v4() primary key,
+  source_text text not null,
+  source_lang text not null,
+  target_lang text not null,
+  translated_text text not null,
+  quality_score float,
+  context_hash text, -- Hash of conversation context for context-aware caching
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  expires_at timestamp with time zone default timezone('utc'::text, now() + interval '7 days') not null
+);
+
+-- Create index for fast translation lookups
+create index if not exists idx_translation_cache_lookup 
+  on public.translation_cache(source_text, source_lang, target_lang, context_hash);
+
+-- Create index for cache cleanup (expired entries)
+create index if not exists idx_translation_cache_expires 
+  on public.translation_cache(expires_at);
+
+-- Enable RLS for translation_cache
+alter table public.translation_cache enable row level security;
+
+create policy "Translation cache is readable by everyone."
+  on public.translation_cache for select
+  using ( true );
+
+create policy "Anyone can insert translations."
+  on public.translation_cache for insert
+  with check ( true );
+

@@ -88,3 +88,17 @@ export interface MeetingSettings {
   transmitRawAudio: boolean;
   voice: 'Aoede' | 'Charon' | 'Puck' | 'Fenrir' | 'Kore';
 }
+
+export type TranslationQualityMode = 'speed' | 'balanced' | 'accuracy';
+
+export interface TranslationStatus {
+  isTranslating: boolean;
+  progress: string;
+  error?: string;
+}
+
+export interface LanguageDetectionResult {
+  language: string;
+  confidence: number;
+}
+
