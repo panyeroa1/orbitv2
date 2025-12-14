@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-<
-
-Zap, Volume2, Gauge, Award, BookOpen, X } from 'lucide-react';
+import { Languages, Settings, Globe, Zap, Volume2, Gauge, Award, BookOpen, X } from 'lucide-react';
+import LanguageSelector from './LanguageSelector';
 
 interface TranslationPanelProps {
   sourceLang: string;
