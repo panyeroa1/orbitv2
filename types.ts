@@ -102,3 +102,52 @@ export interface LanguageDetectionResult {
   confidence: number;
 }
 
+// Live Captions System
+export interface CaptionSegment {
+  id: string;
+  meeting_id: string;
+  speaker_peer_id: string;
+  speaker_name: string;
+  source_lang: string;
+  text_final: string;
+  stt_meta?: Record<string, any>;
+  created_at: string;
+}
+
+export interface CaptionTranslation {
+  id: string;
+  meeting_id: string;
+  segment_id: string;
+  target_lang: string;
+  translated_text: string;
+  tts_style_prompt?: string;
+  quality_score?: number;
+  created_at: string;
+}
+
+export interface MeetingLanguageTarget {
+  id: string;
+  meeting_id: string;
+  user_id?: string;
+  peer_id?: string;
+  target_lang: string;
+  updated_at: string;
+}
+
+export interface CaptionSettings {
+  enabled: boolean;
+  autoTranslate: boolean;
+  targetLanguage: string;
+  fontSize: 'small' | 'medium' | 'large';
+  backgroundOpacity: number;
+  showOriginalAndTranslation: boolean;
+  incomingTranslatedVoiceEnabled: boolean;
+  hearOwnTranslationEnabled: boolean;
+}
+
+export interface InterimCaption {
+  speaker_peer_id: string;
+  speaker_name: string;
+  text: string;
+  confidence?: number;
+}
