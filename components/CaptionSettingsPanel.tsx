@@ -55,6 +55,7 @@ const CaptionSettingsPanel: React.FC<CaptionSettingsPanelProps> = ({
             </div>
             <button
               onClick={() => updateSetting('enabled', !settings.enabled)}
+              aria-label="Toggle captions"
               className={`w-12 h-6 rounded-full p-1 transition-colors ${
                 settings.enabled ? 'bg-neon' : 'bg-white/10'
               }`}
@@ -75,6 +76,7 @@ const CaptionSettingsPanel: React.FC<CaptionSettingsPanelProps> = ({
             </div>
             <button
               onClick={() => updateSetting('autoTranslate', !settings.autoTranslate)}
+              aria-label="Toggle auto-translate"
               className={`w-12 h-6 rounded-full p-1 transition-colors ${
                 settings.autoTranslate ? 'bg-neon' : 'bg-white/10'
               }`}
@@ -135,6 +137,8 @@ const CaptionSettingsPanel: React.FC<CaptionSettingsPanelProps> = ({
                 step="0.1"
                 value={settings.backgroundOpacity}
                 onChange={(e) => updateSetting('backgroundOpacity', parseFloat(e.target.value))}
+                title="Background opacity"
+                aria-label="Background opacity slider"
                 className="flex-1 h-2 rounded-lg appearance-none bg-white/10 cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #00f3ff ${settings.backgroundOpacity * 100}%, rgba(255,255,255,0.1) ${settings.backgroundOpacity * 100}%)`
@@ -155,6 +159,7 @@ const CaptionSettingsPanel: React.FC<CaptionSettingsPanelProps> = ({
               </div>
               <button
                 onClick={() => updateSetting('showOriginalAndTranslation', !settings.showOriginalAndTranslation)}
+                aria-label="Toggle show both languages"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   settings.showOriginalAndTranslation ? 'bg-neon' : 'bg-white/10'
                 }`}
@@ -179,6 +184,7 @@ const CaptionSettingsPanel: React.FC<CaptionSettingsPanelProps> = ({
               </div>
               <button
                 onClick={() => updateSetting('incomingTranslatedVoiceEnabled', !settings.incomingTranslatedVoiceEnabled)}
+                aria-label="Toggle hear translated audio"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   settings.incomingTranslatedVoiceEnabled ? 'bg-neon' : 'bg-white/10'
                 }`}
@@ -198,6 +204,7 @@ const CaptionSettingsPanel: React.FC<CaptionSettingsPanelProps> = ({
               </div>
               <button
                 onClick={() => updateSetting('hearOwnTranslationEnabled', !settings.hearOwnTranslationEnabled)}
+                aria-label="Toggle hear own translation"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   settings.hearOwnTranslationEnabled ? 'bg-neon' : 'bg-white/10'
                 }`}
