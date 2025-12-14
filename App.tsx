@@ -17,8 +17,6 @@ import { useSTT } from './hooks/useSTT';
 // Components
 import OrbitVisualizer from './components/OrbitVisualizer';
 import AuthPage from './components/AuthPage';
-import RealtimeTranslator from './components/RealtimeTranslator';
-import LandingView from './components/LandingView';
 import PaymentPage from './components/PaymentPage';
 import CaptionsOverlay from './components/CaptionsOverlay';
 import CaptionSettingsPanel from './components/CaptionSettingsPanel';
