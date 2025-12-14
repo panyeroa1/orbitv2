@@ -132,16 +132,17 @@ export function useCaptions({ meetingId, userId, peerId, targetLanguage }: UseCa
     });
   };
 
-  // Save final caption to DB
+  // Save final caption to DB and trigger client-side translation
   const saveFinalCaption = async (
     speakerPeerId: string,
     speakerName: string,
     text: string,
-    sourceLang: string = 'en'
+    sourceLang: string = 'en',
+    shouldTranslate: boolean = true
   ) => {
     clearInterimCaption(speakerPeerId);
 
-    const { error } = await supabase
+    const { data: segment, error } = await supabase
       .from('caption_segments')
       .insert({
         meeting_id: meetingId,
@@ -150,10 +151,64 @@ export function useCaptions({ meetingId, userId, peerId, targetLanguage }: UseCa
         source_lang: sourceLang,
         text_final: text,
         stt_meta: {}
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('Error saving caption:', error);
+      return;
+    }
+
+    // Client-side translation (fallback when Edge Functions unavailable)
+    if (shouldTranslate && segment && targetLanguage && targetLanguage !== sourceLang) {
+      translateSegment(segment.id, text, sourceLang, targetLanguage);
+    }
+  };
+
+  // Client-side translation function
+  const translateSegment = async (
+    segmentId: string,
+    text: string,
+    sourceLang: string,
+    targetLang: string
+  ) => {
+    try {
+      const geminiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
+      if (!geminiKey) {
+        console.warn('VITE_GEMINI_API_KEY not set, skipping translation');
+        return;
+      }
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `Translate the following text from ${sourceLang} to ${targetLang}. Return ONLY the translated text, no explanation or quotes.\n\nText: "${text}"` }]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const translatedText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      if (translatedText) {
+        // Store translation in DB for other clients
+        await supabase
+          .from('caption_translations')
+          .upsert({
+            meeting_id: meetingId,
+            segment_id: segmentId,
+            target_lang: targetLang,
+            translated_text: translatedText
+          }, { onConflict: 'segment_id,target_lang' });
+
+        // Update local state immediately
+        setTranslations(prev => new Map(prev).set(segmentId, translatedText));
+      }
+    } catch (e) {
+      console.error('Translation failed:', e);
     }
   };
 

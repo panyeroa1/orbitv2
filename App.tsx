@@ -361,6 +361,36 @@ const App: React.FC = () => {
     onControlSignal: handleControlSignal
   });
 
+  // --- Captions Integration ---
+  const { 
+    segments: captionSegments, 
+    translations: captionTranslations,
+    interimCaptions,
+    addInterimCaption,
+    saveFinalCaption
+  } = useCaptions({
+    meetingId: sessionInfo?.id || '',
+    userId: userId,
+    peerId: 'local',
+    targetLanguage: captionSettings.targetLanguage
+  });
+
+  const {
+    isListening: isSTTListening,
+    isSupported: isSTTSupported,
+    startListening: startSTT,
+    stopListening: stopSTT,
+    toggleListening: toggleSTT
+  } = useSTT({
+    onInterimResult: (text) => addInterimCaption('local', 'You', text),
+    onFinalResult: (text) => {
+        saveFinalCaption('local', 'You', text, config.sourceLang, captionSettings.autoTranslate);
+        handleSTTResult(text, true);
+    },
+    language: config.sourceLang,
+    continuous: true
+  });
+
   // --- Effects ---
 
   // Scroll transcript to bottom
@@ -745,12 +775,11 @@ const App: React.FC = () => {
 
   const toggleMic = () => {
     if (isMicActive) {
-      sttRef.current?.stop();
+      stopSTT();
       setIsMicActive(false);
       setOrbitState('idle');
     } else {
-      sttRef.current = new STTService(config.sourceLang);
-      sttRef.current?.start(handleSTTResult);
+      startSTT();
       setIsMicActive(true);
       setOrbitState('listening');
     }
@@ -1139,7 +1168,10 @@ const App: React.FC = () => {
                 <DockButton icon={isVideoActive ? <Video /> : <VideoOff className="text-red-500" />} onClick={() => setIsVideoActive(!isVideoActive)} label="Video" />
                 <DockButton icon={<MonitorUp className={isScreenSharing ? "text-green-400" : ""} />} onClick={toggleScreenShare} label={isScreenSharing ? "Stop Sharing" : "Share Screen"} active={isScreenSharing} />
                 <div className="w-px h-8 bg-white/10 mx-2"></div>
-                <DockButton icon={<Captions />} onClick={() => setShowCaptions(!showCaptions)} active={showCaptions} label="Captions" />
+                <div className="flex items-center bg-white/5 rounded-2xl pr-2">
+                    <DockButton icon={<Captions />} onClick={() => setShowCaptions(!showCaptions)} active={showCaptions} label="Captions" />
+                    <button onClick={() => setShowCaptionSettings(true)} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors" title="Caption Settings"><Settings size={14} /></button>
+                </div>
                 <DockButton icon={<Users />} onClick={() => { setIsSidebarOpen(!isSidebarOpen); setSidebarView('participants'); }} active={isSidebarOpen && sidebarView === 'participants'} label="People" count={participants.length} />
                 <DockButton icon={<MessageSquare />} onClick={() => { setIsSidebarOpen(!isSidebarOpen); setSidebarView('chat'); }} active={isSidebarOpen && sidebarView === 'chat'} label="Chat" count={messages.length > 0 ? messages.length : undefined} />
                 <DockButton icon={<Settings />} onClick={() => setShowSettings(true)} label="Settings" />
@@ -1150,24 +1182,23 @@ const App: React.FC = () => {
           </div>
           
           {showCaptions && (
-             <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-full max-w-4xl flex flex-col items-center pointer-events-none px-4 z-20">
-                {/* Show Live Interim Transcript if available */}
-                {interimTranscript && (
-                    <div className="animate-in slide-in-from-bottom-5 fade-in duration-300 mb-2">
-                        <div className="bg-black/50 backdrop-blur-sm text-white/70 text-lg md:text-xl font-medium px-4 py-2 rounded-lg text-center leading-relaxed border border-white/5">
-                            <span className="align-middle italic">{interimTranscript}...</span>
-                        </div>
-                    </div>
-                )}
-                {/* Show Final Translated Segments */}
-                {segments.slice(-1).map((seg) => (
-                    <div key={seg.id} className="animate-in slide-in-from-bottom-5 fade-in duration-300">
-                        <div className="bg-black/70 backdrop-blur-sm text-white text-xl md:text-2xl font-medium px-6 py-3 rounded-lg shadow-lg text-center leading-relaxed">
-                            <span className="text-neon font-bold mr-2 text-base align-middle uppercase tracking-wider">{seg.speakerName || "Unknown"}:</span>
-                            <span className="align-middle shadow-black drop-shadow-md">{seg.translated || "..."}</span>
-                        </div>
-                    </div>
-                ))}
+             <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 pointer-events-none px-4">
+                 <CaptionsOverlay
+                    segments={captionSegments}
+                    translations={captionTranslations}
+                    interimCaptions={interimCaptions}
+                    settings={captionSettings}
+                 />
+             </div>
+          )}
+
+          {showCaptionSettings && (
+             <div className="absolute inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <CaptionSettingsPanel
+                   settings={captionSettings}
+                   onSettingsChange={setCaptionSettings}
+                   onClose={() => setShowCaptionSettings(false)}
+                />
              </div>
           )}
        </div>
