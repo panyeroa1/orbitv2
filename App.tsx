@@ -656,7 +656,12 @@ const App: React.FC = () => {
           
           const response = await ai.models.generateContent({
               model: MODEL_TRANSLATOR,
-              contents: prompt
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: prompt }]
+                }
+              ]
           });
           
           setMeetingSummary(response.text || "Could not generate summary.");
@@ -738,7 +743,15 @@ const App: React.FC = () => {
 
     try {
     const prompt = `Translate to ${config.targetLang}. Input: "${text}". Output ONLY the translation. Ensure the tone, style, and emotion matches the original speaker as closely as possible for a native ${config.targetLang} speaker.`;
-    const response = await ai.models.generateContent({ model: MODEL_TRANSLATOR, contents: prompt });
+    const response = await ai.models.generateContent({
+      model: MODEL_TRANSLATOR,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }]
+        }
+      ]
+    });
     const translatedText = response.text?.trim();
 
     if (translatedText) {
@@ -756,7 +769,12 @@ const App: React.FC = () => {
     try {
         const response = await ai.models.generateContent({
             model: MODEL_TTS,
-            contents: text,
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text }]
+              }
+            ],
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: meetingSettings.voice } } }

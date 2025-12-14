@@ -73,19 +73,22 @@ const AudioTranscriber: React.FC = () => {
 
       const response = await ai.models.generateContent({
         model: MODEL_TRANSCRIBE,
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                mimeType: audioFile.type || 'audio/mp3', // Fallback
-                data: base64Data
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inlineData: {
+                  mimeType: audioFile.type || 'audio/mp3', // Fallback
+                  data: base64Data
+                }
+              },
+              {
+                text: "Transcribe this audio exactly as it is spoken."
               }
-            },
-            {
-              text: "Transcribe this audio exactly as it is spoken."
-            }
-          ]
-        }
+            ]
+          }
+        ]
       });
 
       setTranscription(response.text || "No transcription available.");

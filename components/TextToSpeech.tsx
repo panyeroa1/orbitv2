@@ -21,7 +21,12 @@ const TextToSpeech: React.FC = () => {
     try {
       const response = await ai.models.generateContent({
         model: MODEL_TTS,
-        contents: text,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text }]
+          }
+        ],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {

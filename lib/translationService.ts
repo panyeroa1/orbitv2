@@ -99,7 +99,12 @@ class TranslationService {
       const prompt = `Detect the language of this text and respond with ONLY the ISO 639-1 language code (e.g., "en", "es", "fr"). Text: "${text}"`;
       const response = await ai.models.generateContent({
         model: MODEL_FLASH,
-        contents: prompt
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }]
+          }
+        ]
       });
       
       const language = response.text?.trim().toLowerCase() || 'en';
@@ -165,7 +170,12 @@ class TranslationService {
 
         const response = await ai.models.generateContent({
           model: quality.model,
-          contents: prompt
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }]
+            }
+          ]
         });
 
         const translation = response.text?.trim();
