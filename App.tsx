@@ -1,24 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppState, Segment, TranslationConfig, MeetingSession, MediaDevice, Participant, MeetingSettings, Message, ScheduledMeeting } from './types';
+import { AppState, Segment, TranslationConfig, MeetingSession, MediaDevice, Participant, MeetingSettings, Message, ScheduledMeeting, CaptionSettings } from './types';
+
+// Services
+import { STTService } from './lib/sttService';
+import { AudioQueue } from './lib/audioQueue';
 import { ai, MODEL_TRANSLATOR, MODEL_TTS } from './lib/gemini';
 import { Modality } from '@google/genai';
 import { base64ToUint8Array } from './lib/audioUtils';
-import { AudioQueue } from './lib/audioQueue';
-import { STTService } from './lib/sttService';
 import { getAvailableDevices, getStream } from './lib/deviceUtils';
+
 import { supabase } from './lib/supabaseClient';
-import { Session } from '@supabase/supabase-js';
 import { useWebRTC } from './hooks/useWebRTC';
+import { useCaptions } from './hooks/useCaptions';
+import { useSTT } from './hooks/useSTT';
+
+// Components
 import OrbitVisualizer from './components/OrbitVisualizer';
 import AuthPage from './components/AuthPage';
+import RealtimeTranslator from './components/RealtimeTranslator';
+import LandingView from './components/LandingView';
 import PaymentPage from './components/PaymentPage';
-import { 
-  Mic, MicOff, Video, VideoOff, 
-  MonitorUp, Users, MessageSquare, 
+import CaptionsOverlay from './components/CaptionsOverlay';
+import CaptionSettingsPanel from './components/CaptionSettingsPanel';
+import { Session } from '@supabase/supabase-js';
+
+import {
+  Mic, MicOff, Video, VideoOff,
+  MonitorUp, Users, MessageSquare,
   Settings, Globe,
   Calendar, Plus, Link as LinkIcon,
-  Copy, ShieldCheck, X, 
-  Wand2, Zap, Sparkles, FileText, 
+  Copy, ShieldCheck, X,
+  Wand2, Zap, Sparkles, FileText,
   Share, Bot, File, Download,
   Mail, CheckCircle, RefreshCw,
   Volume2, Signal, Briefcase, Boxes,
@@ -259,6 +271,19 @@ const App: React.FC = () => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [showCaptions, setShowCaptions] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
+
+  // Caption Settings State
+  const [showCaptionSettings, setShowCaptionSettings] = useState(false);
+  const [captionSettings, setCaptionSettings] = useState<CaptionSettings>({
+    enabled: true,
+    autoTranslate: false,
+    targetLanguage: 'en',
+    fontSize: 'medium',
+    backgroundOpacity: 0.8,
+    showOriginalAndTranslation: false,
+    incomingTranslatedVoiceEnabled: false,
+    hearOwnTranslationEnabled: false
+  });
 
   // Studio Effects State
   const [isMirrored, setIsMirrored] = useState(true);
