@@ -1,0 +1,9 @@
+{
+  "name": "Orbitsv2",
+  "description": "Real-Time Nuance Translation Engine featuring Extreme Nuance preservation and Verbatim Disfluency.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera",
+    "geolocation"
+  ]
+}
