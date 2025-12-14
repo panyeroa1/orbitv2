@@ -142,7 +142,7 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost, on
   // 2. Handle Local Stream Changes
   useEffect(() => {
     if (localStream) {
-        Object.values(peersRef.current).forEach(pc => {
+        Object.values(peersRef.current).forEach((pc: RTCPeerConnection) => {
             const senders = pc.getSenders();
             localStream.getTracks().forEach(track => {
                 const sender = senders.find(s => s.track?.kind === track.kind);

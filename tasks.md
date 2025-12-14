@@ -127,3 +127,65 @@ Test result:
 
 Known limitations or follow-up tasks:
 - None
+------------------------------------------------------------
+STANDARD TASK BLOCK
+------------------------------------------------------------
+
+Task ID: T-0003
+Title: Fix WebRTC Types, Full App Check, and Database Migration
+Status: DONE
+Owner: Miles
+Related repo or service: orbitv2
+Branch: main
+Created: 2025-12-14 22:25
+Last updated: 2025-12-14 22:25
+
+START LOG (fill this before you start coding)
+
+Timestamp: 2025-12-14 22:18
+Current behavior or state:
+- TypeScript errors in `hooks/useWebRTC.ts` regarding `getSenders` and `addTrack` on unknown type.
+- Database schema might be incomplete or missing for new features.
+
+Plan and scope for this task:
+- Fix TypeScript errors in `hooks/useWebRTC.ts`.
+- Run full project type check (`npm run build`).
+- Create comprehensive `supabase_schema.sql` (Profiles, Meetings, Payments).
+- Commit changes.
+
+Files or modules expected to change:
+- hooks/useWebRTC.ts
+- supabase_schema.sql
+
+Risks or things to watch out for:
+- Database schema changes need manual application by user.
+
+WORK CHECKLIST
+
+- [x] Code changes implemented according to the defined scope
+- [x] No unrelated refactors or drive-by changes
+- [x] Configuration and environment variables verified
+- [x] Database migrations or scripts documented if they exist
+- [x] Logs and error handling reviewed
+
+END LOG (fill this after you finish coding and testing)
+
+Timestamp: 2025-12-14 22:25
+Summary of what actually changed:
+- Fixed TypeScript inference errors in `useWebRTC.ts`.
+- Verified build and created `supabase_schema.sql` with RLS policies and triggers.
+
+Files actually modified:
+- hooks/useWebRTC.ts
+- supabase_schema.sql
+- tasks.md
+
+How it was tested:
+- `npm run build` passed.
+- Manual verification of SQL syntax.
+
+Test result:
+- PASS
+
+Known limitations or follow-up tasks:
+- User must run `supabase_schema.sql` in Supabase SQL Editor.
