@@ -91,6 +91,8 @@ const TranslationPanel: React.FC<TranslationPanelProps> = ({
           </div>
           <button
             onClick={onClose}
+            title="Close settings"
+            aria-label="Close settings"
             className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"
           >
             <X size={24} />
@@ -228,6 +230,8 @@ const TranslationPanel: React.FC<TranslationPanelProps> = ({
                           delete newGlossary[term];
                           setGlossary(newGlossary);
                         }}
+                        title="Remove term"
+                        aria-label="Remove term"
                         className="text-red-400 hover:text-red-300 p-1"
                       >
                         <X size={14} />
