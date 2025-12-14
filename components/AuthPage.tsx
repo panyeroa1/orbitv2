@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Mail, Lock, ArrowRight, Loader2, Sparkles, KeyRound, UserPlus, LogIn, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import OrbitVisualizer from './OrbitVisualizer';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
@@ -9,6 +9,9 @@ const AuthPage: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
 
@@ -22,6 +25,9 @@ const AuthPage: React.FC = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else if (mode === 'signup') {
+        if (password !== confirmPassword) {
+          throw new Error("Passwords do not match.");
+        }
         const { error } = await supabase.auth.signUp({ 
           email, 
           password,
@@ -43,6 +49,13 @@ const AuthPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const switchMode = (newMode: AuthMode) => {
+    setMode(newMode);
+    setMessage(null);
+    setPassword('');
+    setConfirmPassword('');
   };
 
   return (
@@ -106,13 +119,41 @@ const AuthPage: React.FC = () => {
               <div className="relative group/input">
                 <Lock className="absolute left-4 top-3.5 text-secondary group-focus-within/input:text-neon transition-colors" size={20} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-white/30 focus:outline-none focus:border-neon transition-all"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder-white/30 focus:outline-none focus:border-neon transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3.5 text-secondary hover:text-white transition-colors focus:outline-none"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            )}
+
+            {mode === 'signup' && (
+              <div className="relative group/input animate-in slide-in-from-top-2 fade-in">
+                <Lock className="absolute left-4 top-3.5 text-secondary group-focus-within/input:text-neon transition-colors" size={20} />
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder-white/30 focus:outline-none focus:border-neon transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-3.5 text-secondary hover:text-white transition-colors focus:outline-none"
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             )}
           </div>
@@ -121,7 +162,7 @@ const AuthPage: React.FC = () => {
             <div className="flex justify-end">
               <button 
                 type="button"
-                onClick={() => { setMode('forgot'); setMessage(null); }}
+                onClick={() => switchMode('forgot')}
                 className="text-xs text-secondary hover:text-neon transition-colors"
               >
                 Forgot Password?
@@ -152,14 +193,14 @@ const AuthPage: React.FC = () => {
           {mode === 'login' ? (
             <p className="text-sm text-secondary">
               New to Orbits?{' '}
-              <button onClick={() => { setMode('signup'); setMessage(null); }} className="text-neon font-bold hover:underline">
+              <button onClick={() => switchMode('signup')} className="text-neon font-bold hover:underline">
                 Create Account
               </button>
             </p>
           ) : (
             <p className="text-sm text-secondary">
               Already have an account?{' '}
-              <button onClick={() => { setMode('login'); setMessage(null); }} className="text-neon font-bold hover:underline">
+              <button onClick={() => switchMode('login')} className="text-neon font-bold hover:underline">
                 Log In
               </button>
             </p>

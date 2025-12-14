@@ -11,6 +11,7 @@ import { Session } from '@supabase/supabase-js';
 import { useWebRTC } from './hooks/useWebRTC';
 import OrbitVisualizer from './components/OrbitVisualizer';
 import AuthPage from './components/AuthPage';
+import PaymentPage from './components/PaymentPage';
 import { 
   Mic, MicOff, Video, VideoOff, 
   MonitorUp, Users, MessageSquare, 
@@ -22,20 +23,145 @@ import {
   Mail, CheckCircle, RefreshCw,
   Volume2, Signal, Briefcase, Boxes,
   Check, Captions, UserMinus, Video as VideoIcon, Grid,
-  Speaker, List, Bell, PhoneOff, Send, LogOut
+  Speaker, List, Bell, PhoneOff, Send, LogOut, DollarSign,
+  UserCheck, UserX, Clock, Pin
 } from 'lucide-react';
 
 const LISTENING_LANGUAGES = [
-  { code: 'en-US', name: 'English' },
-  { code: 'es-ES', name: 'Spanish' },
-  { code: 'fr-FR', name: 'French' },
-  { code: 'de-DE', name: 'German' },
+  { code: 'af-ZA', name: 'Afrikaans (South Africa)' },
+  { code: 'am-ET', name: 'Amharic (Ethiopia)' },
+  { code: 'ar-AE', name: 'Arabic (UAE)' },
+  { code: 'ar-BH', name: 'Arabic (Bahrain)' },
+  { code: 'ar-DZ', name: 'Arabic (Algeria)' },
+  { code: 'ar-EG', name: 'Arabic (Egypt)' },
+  { code: 'ar-IQ', name: 'Arabic (Iraq)' },
+  { code: 'ar-JO', name: 'Arabic (Jordan)' },
+  { code: 'ar-KW', name: 'Arabic (Kuwait)' },
+  { code: 'ar-LB', name: 'Arabic (Lebanon)' },
+  { code: 'ar-LY', name: 'Arabic (Libya)' },
+  { code: 'ar-MA', name: 'Arabic (Morocco)' },
+  { code: 'ar-OM', name: 'Arabic (Oman)' },
+  { code: 'ar-QA', name: 'Arabic (Qatar)' },
+  { code: 'ar-SA', name: 'Arabic (Saudi Arabia)' },
+  { code: 'ar-SY', name: 'Arabic (Syria)' },
+  { code: 'ar-TN', name: 'Arabic (Tunisia)' },
+  { code: 'ar-YE', name: 'Arabic (Yemen)' },
+  { code: 'az-AZ', name: 'Azerbaijani' },
+  { code: 'bg-BG', name: 'Bulgarian' },
+  { code: 'bn-BD', name: 'Bengali (Bangladesh)' },
+  { code: 'bn-IN', name: 'Bengali (India)' },
+  { code: 'bs-BA', name: 'Bosnian' },
+  { code: 'ca-ES', name: 'Catalan' },
+  { code: 'cs-CZ', name: 'Czech' },
+  { code: 'da-DK', name: 'Danish' },
+  { code: 'de-AT', name: 'German (Austria)' },
+  { code: 'de-CH', name: 'German (Switzerland)' },
+  { code: 'de-DE', name: 'German (Germany)' },
+  { code: 'el-GR', name: 'Greek' },
+  { code: 'en-AU', name: 'English (Australia)' },
+  { code: 'en-CA', name: 'English (Canada)' },
+  { code: 'en-GB', name: 'English (UK)' },
+  { code: 'en-GH', name: 'English (Ghana)' },
+  { code: 'en-HK', name: 'English (Hong Kong)' },
+  { code: 'en-IE', name: 'English (Ireland)' },
+  { code: 'en-IN', name: 'English (India)' },
+  { code: 'en-KE', name: 'English (Kenya)' },
+  { code: 'en-NG', name: 'English (Nigeria)' },
+  { code: 'en-NZ', name: 'English (New Zealand)' },
+  { code: 'en-PH', name: 'English (Philippines)' },
+  { code: 'en-SG', name: 'English (Singapore)' },
+  { code: 'en-TZ', name: 'English (Tanzania)' },
+  { code: 'en-US', name: 'English (USA)' },
+  { code: 'en-ZA', name: 'English (South Africa)' },
+  { code: 'es-AR', name: 'Spanish (Argentina)' },
+  { code: 'es-BO', name: 'Spanish (Bolivia)' },
+  { code: 'es-CL', name: 'Spanish (Chile)' },
+  { code: 'es-CO', name: 'Spanish (Colombia)' },
+  { code: 'es-CR', name: 'Spanish (Costa Rica)' },
+  { code: 'es-DO', name: 'Spanish (Dominican Republic)' },
+  { code: 'es-EC', name: 'Spanish (Ecuador)' },
+  { code: 'es-ES', name: 'Spanish (Spain)' },
+  { code: 'es-GT', name: 'Spanish (Guatemala)' },
+  { code: 'es-HN', name: 'Spanish (Honduras)' },
+  { code: 'es-MX', name: 'Spanish (Mexico)' },
+  { code: 'es-NI', name: 'Spanish (Nicaragua)' },
+  { code: 'es-PA', name: 'Spanish (Panama)' },
+  { code: 'es-PE', name: 'Spanish (Peru)' },
+  { code: 'es-PR', name: 'Spanish (Puerto Rico)' },
+  { code: 'es-PY', name: 'Spanish (Paraguay)' },
+  { code: 'es-SV', name: 'Spanish (El Salvador)' },
+  { code: 'es-US', name: 'Spanish (USA)' },
+  { code: 'es-UY', name: 'Spanish (Uruguay)' },
+  { code: 'es-VE', name: 'Spanish (Venezuela)' },
+  { code: 'et-EE', name: 'Estonian' },
+  { code: 'eu-ES', name: 'Basque' },
+  { code: 'fa-IR', name: 'Persian' },
+  { code: 'fi-FI', name: 'Finnish' },
+  { code: 'fil-PH', name: 'Filipino' },
+  { code: 'fr-BE', name: 'French (Belgium)' },
+  { code: 'fr-CA', name: 'French (Canada)' },
+  { code: 'fr-CH', name: 'French (Switzerland)' },
+  { code: 'fr-FR', name: 'French (France)' },
+  { code: 'gl-ES', name: 'Galician' },
+  { code: 'gu-IN', name: 'Gujarati' },
+  { code: 'he-IL', name: 'Hebrew' },
+  { code: 'hi-IN', name: 'Hindi' },
+  { code: 'hr-HR', name: 'Croatian' },
+  { code: 'hu-HU', name: 'Hungarian' },
+  { code: 'hy-AM', name: 'Armenian' },
+  { code: 'id-ID', name: 'Indonesian' },
+  { code: 'is-IS', name: 'Icelandic' },
+  { code: 'it-CH', name: 'Italian (Switzerland)' },
+  { code: 'it-IT', name: 'Italian (Italy)' },
   { code: 'ja-JP', name: 'Japanese' },
+  { code: 'jv-ID', name: 'Javanese' },
+  { code: 'ka-GE', name: 'Georgian' },
+  { code: 'km-KH', name: 'Khmer' },
+  { code: 'kn-IN', name: 'Kannada' },
   { code: 'ko-KR', name: 'Korean' },
-  { code: 'zh-CN', name: 'Chinese' },
+  { code: 'lo-LA', name: 'Lao' },
+  { code: 'lt-LT', name: 'Lithuanian' },
+  { code: 'lv-LV', name: 'Latvian' },
+  { code: 'mk-MK', name: 'Macedonian' },
+  { code: 'ml-IN', name: 'Malayalam' },
+  { code: 'mn-MN', name: 'Mongolian' },
+  { code: 'mr-IN', name: 'Marathi' },
+  { code: 'ms-MY', name: 'Malay' },
+  { code: 'my-MM', name: 'Burmese' },
+  { code: 'ne-NP', name: 'Nepali' },
+  { code: 'nl-BE', name: 'Dutch (Belgium)' },
+  { code: 'nl-NL', name: 'Dutch (Netherlands)' },
+  { code: 'no-NO', name: 'Norwegian' },
+  { code: 'pl-PL', name: 'Polish' },
+  { code: 'pt-BR', name: 'Portuguese (Brazil)' },
+  { code: 'pt-PT', name: 'Portuguese (Portugal)' },
+  { code: 'ro-RO', name: 'Romanian' },
   { code: 'ru-RU', name: 'Russian' },
-  { code: 'it-IT', name: 'Italian' },
-  { code: 'pt-BR', name: 'Portuguese' },
+  { code: 'si-LK', name: 'Sinhala' },
+  { code: 'sk-SK', name: 'Slovak' },
+  { code: 'sl-SI', name: 'Slovenian' },
+  { code: 'sq-AL', name: 'Albanian' },
+  { code: 'sr-RS', name: 'Serbian' },
+  { code: 'su-ID', name: 'Sundanese' },
+  { code: 'sv-SE', name: 'Swedish' },
+  { code: 'sw-KE', name: 'Swahili (Kenya)' },
+  { code: 'sw-TZ', name: 'Swahili (Tanzania)' },
+  { code: 'ta-IN', name: 'Tamil (India)' },
+  { code: 'ta-LK', name: 'Tamil (Sri Lanka)' },
+  { code: 'ta-MY', name: 'Tamil (Malaysia)' },
+  { code: 'ta-SG', name: 'Tamil (Singapore)' },
+  { code: 'te-IN', name: 'Telugu' },
+  { code: 'th-TH', name: 'Thai' },
+  { code: 'tr-TR', name: 'Turkish' },
+  { code: 'uk-UA', name: 'Ukrainian' },
+  { code: 'ur-IN', name: 'Urdu (India)' },
+  { code: 'ur-PK', name: 'Urdu (Pakistan)' },
+  { code: 'uz-UZ', name: 'Uzbek' },
+  { code: 'vi-VN', name: 'Vietnamese' },
+  { code: 'zh-CN', name: 'Chinese (Mandarin)' },
+  { code: 'zh-HK', name: 'Chinese (Cantonese)' },
+  { code: 'zh-TW', name: 'Chinese (Traditional)' },
+  { code: 'zu-ZA', name: 'Zulu' }
 ];
 
 const BACKGROUND_PRESETS = [
@@ -46,6 +172,25 @@ const BACKGROUND_PRESETS = [
   { id: 'greenscreen', label: 'Green Screen', icon: <Boxes size={14} /> },
 ];
 
+// Simple chime sound base64
+const CHIME_SOUND = "data:audio/wav;base64,UklGRl9vT1d..."; // In a real app this would be a real file.
+// Using a AudioContext oscillator for "ping" instead of large base64 string to keep code clean
+const playChime = (ctx: AudioContext) => {
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+};
+
+
 const App: React.FC = () => {
   // --- Auth State ---
   const [session, setSession] = useState<Session | null>(null);
@@ -53,7 +198,7 @@ const App: React.FC = () => {
 
   // --- App State ---
   const [appState, setAppState] = useState<AppState>(AppState.LANDING);
-  const [sessionInfo, setSessionInfo] = useState<MeetingSession | null>(null); // Renamed to sessionInfo to avoid conflict with Auth session
+  const [sessionInfo, setSessionInfo] = useState<MeetingSession | null>(null); 
   
   // Meeting State
   // Combined list of Local + Remote
@@ -62,10 +207,11 @@ const App: React.FC = () => {
   const [pinnedParticipantId, setPinnedParticipantId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarView, setSidebarView] = useState<'participants' | 'chat' | 'secretary'>('participants');
-  const [participantsViewMode, setParticipantsViewMode] = useState<'list' | 'video'>('list');
+  const [participantsViewMode, setParticipantsViewMode] = useState<'list' | 'grid'>('list');
   const [showSettings, setShowSettings] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [waitingForHost, setWaitingForHost] = useState(false);
   
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
@@ -149,16 +295,47 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // WebRTC Hook - Initialized only when we have a session
+  // WebRTC Hook
   const userId = session?.user?.id || 'guest';
   const userEmail = session?.user?.email || 'Guest';
   
-  const { remoteParticipants, streams, notifications, chatMessages, sendMessage } = useWebRTC({
+  const handleControlSignal = (action: string, payload: any) => {
+      if (action === 'mute') {
+          setIsMicActive(false);
+          sttRef.current?.stop();
+          setOrbitState('idle');
+          alert('You have been muted by the host.');
+      } else if (action === 'request_video') {
+          if (confirm("Host is requesting you to turn on your video.")) {
+              setIsVideoActive(true);
+          }
+      } else if (action === 'kick' || action === 'join_denied') {
+          stopMediaStream();
+          setSessionInfo(null);
+          setAppState(AppState.LANDING);
+          alert(action === 'join_denied' ? 'Host declined your request to join.' : 'You have been removed from the meeting.');
+      } else if (action === 'join_accepted') {
+          setAppState(AppState.ACTIVE);
+      } else if (action === 'join_request_received') {
+          // Play audio notification for host
+          if (audioContextRef.current) {
+              playChime(audioContextRef.current);
+          }
+      } else if (action === 'spotlight') {
+          // Host has pinned someone for everyone
+          setPinnedParticipantId(payload.data.targetId);
+      } else if (action === 'unspotlight') {
+          setPinnedParticipantId(null);
+      }
+  };
+
+  const { remoteParticipants, streams, notifications, chatMessages, sendMessage, sendControlSignal, joinRequests, resolveJoinRequest } = useWebRTC({
     sessionId: sessionInfo?.id || '',
     userId: userId,
     userName: sessionInfo?.isHost ? `${userEmail} (Host)` : userEmail,
-    localStream: mediaStreamRef.current,
-    isHost: !!sessionInfo?.isHost
+    localStream: isScreenSharing ? screenStreamRef.current : mediaStreamRef.current, // Pass current active video stream
+    isHost: !!sessionInfo?.isHost,
+    onControlSignal: handleControlSignal
   });
 
   // --- Effects ---
@@ -228,9 +405,7 @@ const App: React.FC = () => {
            link: window.location.href, 
            isHost: false 
        });
-       // If not logged in, AuthPage will show, but we keep the intent to join in URL
-       // Once logged in, user sees landing, might need auto-join logic here if desired
-       // For now, let's just pre-fill join form or go to device check if logged in.
+       // If not logged in, AuthPage will show.
        if (session) {
            setAppState(AppState.DEVICE_CHECK);
            setIsVideoActive(true);
@@ -243,10 +418,10 @@ const App: React.FC = () => {
       stopScreenShare();
       sttRef.current?.stop();
     };
-  }, [session]); // Add session dependency to re-eval auto-join
+  }, [session]); 
 
   useEffect(() => {
-    if (appState === AppState.DEVICE_CHECK || appState === AppState.ACTIVE) {
+    if (appState === AppState.DEVICE_CHECK || appState === AppState.ACTIVE || appState === AppState.WAITING_ROOM) {
         if (isVideoActive || isMicActive) {
              startCamera();
         } else {
@@ -258,14 +433,6 @@ const App: React.FC = () => {
   // Handle attaching remote streams to video elements
   useEffect(() => {
      if (appState !== AppState.ACTIVE) return;
-     
-     // 1. Self Video (Only if using layout that requires it separately, or for logic check)
-     if (selfVideoRef.current && mediaStreamRef.current && isVideoActive) {
-         // selfVideoRef.current.srcObject = mediaStreamRef.current; // Removed to avoid conflict with Sidebar video
-         // We handle srcObject attachment via callback refs in render
-     }
-
-     // 2. Main Stage Video (Pinned)
      if (videoRef.current) {
          if (pinnedParticipantId === 'user-1') {
              if (isScreenSharing && screenStreamRef.current) {
@@ -302,7 +469,7 @@ const App: React.FC = () => {
       
       mediaStreamRef.current = stream;
       
-      if (previewVideoRef.current && appState === AppState.DEVICE_CHECK) {
+      if (previewVideoRef.current && (appState === AppState.DEVICE_CHECK || appState === AppState.WAITING_ROOM)) {
           previewVideoRef.current.srcObject = stream;
           previewVideoRef.current.play();
       }
@@ -366,6 +533,7 @@ const App: React.FC = () => {
       screenStreamRef.current = null;
     }
     setIsScreenSharing(false);
+    sendControlSignal('all', 'state_update', { isScreenSharing: false });
   };
 
   const generateInviteLink = (id: string, pass: string) => {
@@ -456,6 +624,7 @@ const App: React.FC = () => {
         screenStreamRef.current = stream;
         setIsScreenSharing(true);
         setPinnedParticipantId('user-1');
+        sendControlSignal('all', 'state_update', { isScreenSharing: true });
         stream.getVideoTracks()[0].onended = () => {
           stopScreenShare();
         };
@@ -490,7 +659,6 @@ const App: React.FC = () => {
         return;
     }
 
-    // Is Final
     setInterimTranscript('');
     setOrbitState('processing');
     
@@ -516,7 +684,7 @@ const App: React.FC = () => {
     }]);
 
     try {
-    const prompt = `Translate to ${config.targetLang}. Input: "${text}". Output ONLY translation.`;
+    const prompt = `Translate to ${config.targetLang}. Input: "${text}". Output ONLY the translation. Ensure the tone, style, and emotion matches the original speaker as closely as possible for a native ${config.targetLang} speaker.`;
     const response = await ai.models.generateContent({ model: MODEL_TRANSLATOR, contents: prompt });
     const translatedText = response.text?.trim();
 
@@ -566,17 +734,31 @@ const App: React.FC = () => {
   };
 
   const toggleParticipantMute = (id: string) => {
-      alert("Muting remote participants is not yet supported in Mesh V1.");
+      sendControlSignal(id, 'mute');
   };
 
   const requestParticipantVideo = (id: string) => {
-      alert(`Requesting video from ${participants.find(p => p.id === id)?.name}`);
+      sendControlSignal(id, 'request_video');
+  };
+
+  const spotlightParticipant = (id: string) => {
+      // Send signal to all to pin this user
+      sendControlSignal('all', 'spotlight', { targetId: id });
   };
 
   const removeParticipant = (id: string) => {
       if (confirm("Remove this participant?")) {
-          setParticipants(prev => prev.filter(p => p.id !== id));
-          if (pinnedParticipantId === id) setPinnedParticipantId(null);
+          sendControlSignal(id, 'kick');
+      }
+  };
+
+  const joinSession = () => {
+      if (sessionInfo?.isHost) {
+          setAppState(AppState.ACTIVE);
+      } else {
+          // Guest sends request and waits
+          setAppState(AppState.WAITING_ROOM);
+          sendControlSignal('all', 'join_request', { senderId: userId, senderName: userEmail });
       }
   };
   
@@ -786,10 +968,33 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="pt-4 border-t border-white/10 space-y-3">
-                       <button onClick={() => setAppState(AppState.ACTIVE)} className="w-full bg-neon text-black font-bold py-3 rounded-xl hover:bg-white transition-colors shadow-[0_0_20px_rgba(0,243,255,0.2)]">Join Now</button>
+                       <button onClick={joinSession} className="w-full bg-neon text-black font-bold py-3 rounded-xl hover:bg-white transition-colors shadow-[0_0_20px_rgba(0,243,255,0.2)]">{sessionInfo?.isHost ? "Start Meeting" : "Request to Join"}</button>
                        <button onClick={() => { stopMediaStream(); setAppState(AppState.LANDING); setSessionInfo(null); }} className="w-full bg-white/5 text-white font-medium py-3 rounded-xl hover:bg-white/10 transition-colors">Cancel</button>
                   </div>
               </div>
+          </div>
+      </div>
+  );
+
+  const renderWaitingRoom = () => (
+      <div className="h-full w-full flex flex-col items-center justify-center relative z-10 bg-black/80 backdrop-blur-md">
+          {/* Keep video stream alive in background context but hidden or blurred */}
+          <div className="absolute inset-0 z-0 opacity-20">
+               {previewVideoRef.current && <video ref={el => { if(el && mediaStreamRef.current) el.srcObject = mediaStreamRef.current }} className="w-full h-full object-cover" muted playsInline autoPlay style={{ transform: 'scaleX(-1)' }} />}
+          </div>
+          
+          <div className="z-10 text-center space-y-6 max-w-md p-8 bg-surface/50 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl">
+              <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto animate-pulse">
+                  <Clock size={40} className="text-neon" />
+              </div>
+              <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Waiting for Host</h2>
+                  <p className="text-secondary">We've notified the host that you are ready to join. You will be let in shortly.</p>
+              </div>
+              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-neon w-1/3 animate-[translateX_300%_1s_infinite]"></div>
+              </div>
+              <button onClick={() => { stopMediaStream(); setAppState(AppState.LANDING); setSessionInfo(null); }} className="text-sm text-red-400 hover:text-red-300 font-medium">Cancel Request</button>
           </div>
       </div>
   );
@@ -805,6 +1010,23 @@ const App: React.FC = () => {
                 <Bell size={14} className="text-neon" />
                 <span className="text-sm font-medium">{msg}</span>
              </div>
+          ))}
+          
+          {/* Join Requests */}
+          {joinRequests.map((req) => (
+              <div key={req.userId} className="pointer-events-auto bg-surface/95 backdrop-blur-md border border-neon text-white p-4 rounded-xl shadow-2xl animate-in slide-in-from-right fade-in duration-300 w-80">
+                  <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-lg">{req.userName[0].toUpperCase()}</div>
+                      <div>
+                          <div className="font-bold">{req.userName}</div>
+                          <div className="text-xs text-secondary">Wants to join the meeting</div>
+                      </div>
+                  </div>
+                  <div className="flex space-x-2">
+                      <button onClick={() => resolveJoinRequest(req.userId, true)} className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm font-bold flex items-center justify-center space-x-1"><UserCheck size={14} /><span>Accept</span></button>
+                      <button onClick={() => resolveJoinRequest(req.userId, false)} className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg text-sm font-bold flex items-center justify-center space-x-1"><UserX size={14} /><span>Decline</span></button>
+                  </div>
+              </div>
           ))}
        </div>
 
@@ -863,15 +1085,16 @@ const App: React.FC = () => {
                               </div>
                           </div>
                       ) : pinnedParticipantId ? (
-                          <div className="w-full h-full relative group">
+                          <div className={`w-full h-full relative group ${participants.find(p => p.id === pinnedParticipantId)?.isScreenSharing ? 'border-green-500/30 border-2' : ''}`}>
                               <video 
                                 ref={(el) => { if(el && streams[pinnedParticipantId]) el.srcObject = streams[pinnedParticipantId] }} 
                                 className="w-full h-full object-contain bg-black" 
                                 autoPlay 
                                 playsInline 
                               />
-                              <div className="absolute bottom-6 left-6 bg-black/60 px-4 py-2 rounded-xl text-white font-medium backdrop-blur-md">
-                                  {participants.find(p => p.id === pinnedParticipantId)?.name}
+                              <div className="absolute bottom-6 left-6 bg-black/60 px-4 py-2 rounded-xl text-white font-medium backdrop-blur-md flex items-center space-x-2">
+                                  {participants.find(p => p.id === pinnedParticipantId)?.isScreenSharing && <MonitorUp size={16} className="text-green-400" />}
+                                  <span>{participants.find(p => p.id === pinnedParticipantId)?.name}</span>
                               </div>
                           </div>
                       ) : (
@@ -898,6 +1121,7 @@ const App: React.FC = () => {
                 <DockButton icon={<MessageSquare />} onClick={() => { setIsSidebarOpen(!isSidebarOpen); setSidebarView('chat'); }} active={isSidebarOpen && sidebarView === 'chat'} label="Chat" count={messages.length > 0 ? messages.length : undefined} />
                 <DockButton icon={<Settings />} onClick={() => setShowSettings(true)} label="Settings" />
                 <div className="w-px h-8 bg-white/10 mx-2"></div>
+                <DockButton icon={<DollarSign className="text-neon" />} onClick={() => setAppState(AppState.PAYMENT)} label="Donate" />
                 <button onClick={() => { sttRef.current?.stop(); setAppState(AppState.LANDING); }} className="bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl transition-colors"><PhoneOff size={20} /></button>
              </div>
           </div>
@@ -932,11 +1156,11 @@ const App: React.FC = () => {
                 <div className="flex items-center space-x-2">
                     {sidebarView === 'participants' && (
                         <button 
-                            onClick={() => setParticipantsViewMode(prev => prev === 'list' ? 'video' : 'list')} 
+                            onClick={() => setParticipantsViewMode(prev => prev === 'list' ? 'grid' : 'list')} 
                             className="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-white transition-colors mr-1"
-                            title={participantsViewMode === 'list' ? "Switch to Video View" : "Switch to List View"}
+                            title={participantsViewMode === 'list' ? "Switch to Grid View" : "Switch to List View"}
                         >
-                            {participantsViewMode === 'list' ? <VideoIcon size={18} /> : <List size={18} />}
+                            {participantsViewMode === 'list' ? <Grid size={18} /> : <List size={18} />}
                         </button>
                     )}
                     <button onClick={() => setIsSidebarOpen(false)}><X className="text-white/50 hover:text-white" size={20} /></button>
@@ -944,29 +1168,53 @@ const App: React.FC = () => {
              </div>
              <div className="flex-1 overflow-y-auto p-2">
                 {sidebarView === 'participants' && (
-                   <div className={participantsViewMode === 'list' ? 'space-y-1' : 'flex flex-col space-y-2'}>
+                   <div className={participantsViewMode === 'list' ? 'space-y-1' : 'grid grid-cols-2 gap-2'}>
                       {sortedParticipants.map(p => (
                          <div key={p.id} className={`rounded-xl cursor-default group transition-all border ${pinnedParticipantId === p.id ? 'bg-neon/10 border-neon/30' : 'hover:bg-white/5 border-transparent'} ${participantsViewMode === 'list' ? 'p-3 flex flex-col space-y-2' : 'p-2 flex flex-col items-center justify-center text-center aspect-video bg-white/5 relative overflow-hidden'}`}>
                             {participantsViewMode === 'list' ? (
                                 <>
-                                    <div className="flex items-center justify-between w-full" onClick={() => setPinnedParticipantId(p.id)}>
-                                        <div className="flex items-center space-x-3">
-                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 font-bold overflow-hidden shrink-0">
-                                            {p.role === 'ai' ? <OrbitVisualizer isActive={false} state="idle" /> : p.name[0]}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className={`text-sm font-medium truncate ${pinnedParticipantId === p.id ? 'text-neon' : 'text-white'}`}>{p.name}</div>
-                                            <div className="text-[10px] text-white/40 capitalize flex items-center space-x-1">
-                                                <span>{p.role}</span>
-                                                {p.isScreenSharing && <span className="text-green-400 flex items-center bg-green-900/30 px-1 rounded ml-1"><MonitorUp size={8} className="mr-0.5"/> Sharing</span>}
+                                    <div className="flex items-center justify-between w-full">
+                                        <div className="flex items-center space-x-3 flex-1 min-w-0" onClick={() => setPinnedParticipantId(p.id)}>
+                                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 font-bold overflow-hidden shrink-0">
+                                                {p.role === 'ai' ? <OrbitVisualizer isActive={false} state="idle" /> : p.name[0]}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className={`text-sm font-medium truncate ${pinnedParticipantId === p.id ? 'text-neon' : 'text-white'}`}>{p.name}</div>
+                                                <div className="text-[10px] text-white/40 capitalize flex items-center space-x-1">
+                                                    <span>{p.role}</span>
+                                                    {p.isScreenSharing && <span className="text-green-400 flex items-center bg-green-900/30 px-1 rounded ml-1"><MonitorUp size={8} className="mr-0.5"/> Sharing</span>}
+                                                </div>
                                             </div>
                                         </div>
-                                        </div>
-                                        <div className="flex space-x-2 text-white/30 shrink-0">
-                                        {p.isMuted ? <MicOff size={12} /> : <Mic size={12} className="text-green-500" />}
-                                        {p.isVideoOn ? <Video size={12} /> : <VideoOff size={12} />}
+                                        
+                                        <div className="flex items-center space-x-1">
+                                            {/* Local Pin Button (Always available) */}
+                                            <button 
+                                                onClick={() => setPinnedParticipantId(pinnedParticipantId === p.id ? null : p.id)} 
+                                                className={`p-1.5 rounded transition-colors ${pinnedParticipantId === p.id ? 'bg-neon/20 text-neon' : 'hover:bg-white/10 text-white/30'}`}
+                                                title={pinnedParticipantId === p.id ? "Unpin" : "Pin locally"}
+                                            >
+                                                <Pin size={12} className={pinnedParticipantId === p.id ? "fill-neon" : ""} />
+                                            </button>
+
+                                            {/* Host Spotlight Button */}
+                                            {sessionInfo?.isHost && p.id !== 'user-1' && (
+                                                 <button 
+                                                    onClick={() => spotlightParticipant(p.id)} 
+                                                    className="p-1.5 hover:bg-white/10 rounded text-white/30 hover:text-green-400 transition-colors" 
+                                                    title="Spotlight for everyone"
+                                                >
+                                                    <MonitorUp size={12} />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
+                                    
+                                    <div className="flex justify-end space-x-2 text-white/30 shrink-0 mt-1 pl-11 text-[10px]">
+                                        {p.isMuted ? <MicOff size={10} /> : <Mic size={10} className="text-green-500" />}
+                                        {p.isVideoOn ? <Video size={10} /> : <VideoOff size={10} />}
+                                    </div>
+
                                     {sessionInfo?.isHost && p.id !== 'user-1' && (
                                         <div className="flex items-center space-x-1 pt-2 border-t border-white/5 opacity-40 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => toggleParticipantMute(p.id)} className="flex-1 flex items-center justify-center py-1 bg-white/5 hover:bg-white/10 rounded text-[10px] text-white/70" title="Toggle Mute">{p.isMuted ? <MicOff size={10} className="mr-1"/> : <Mic size={10} className="mr-1"/>} {p.isMuted ? 'Unmute' : 'Mute'}</button>
@@ -977,16 +1225,15 @@ const App: React.FC = () => {
                                 </>
                             ) : (
                                 <div className="w-full h-full relative" onClick={() => setPinnedParticipantId(p.id)}>
-                                    {/* Vertical Video Stream List */}
+                                    {/* Grid Video Stream */}
                                     {p.id === 'user-1' ? (
-                                        /* Use callback ref to set srcObject to avoid duplicate ref usage if main stage uses ref */
                                         <video 
                                             ref={el => { if (el && mediaStreamRef.current) el.srcObject = mediaStreamRef.current }} 
                                             className="w-full h-full object-cover" 
                                             muted 
                                             playsInline 
                                             autoPlay
-                                            style={{ transform: isMirrored ? 'scaleX(-1)' : 'none' }} 
+                                            style={{ transform: isMirrored && !isScreenSharing ? 'scaleX(-1)' : 'none' }} 
                                         />
                                     ) : streams[p.id] ? (
                                         <video 
@@ -1002,6 +1249,12 @@ const App: React.FC = () => {
                                         <span className="truncate max-w-[80px]">{p.name}</span>
                                         {p.isMuted && <MicOff size={8} className="ml-1 text-red-400"/>}
                                     </div>
+                                    {sessionInfo?.isHost && p.id !== 'user-1' && (
+                                        <div className="absolute top-1 right-1 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                             <button onClick={() => toggleParticipantMute(p.id)} className="p-1 bg-black/60 hover:bg-black/80 rounded text-white"><MicOff size={10} /></button>
+                                             <button onClick={() => removeParticipant(p.id)} className="p-1 bg-red-600/60 hover:bg-red-600/80 rounded text-white"><UserMinus size={10} /></button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                          </div>
@@ -1090,6 +1343,8 @@ const App: React.FC = () => {
       {appState === AppState.SCHEDULE && renderSchedule()}
       {appState === AppState.DEVICE_CHECK && renderDeviceCheck()}
       {appState === AppState.ACTIVE && renderActive()}
+      {appState === AppState.WAITING_ROOM && renderWaitingRoom()}
+      {appState === AppState.PAYMENT && <PaymentPage onBack={() => setAppState(AppState.ACTIVE)} />}
     </div>
   );
 };

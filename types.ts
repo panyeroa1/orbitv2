@@ -5,6 +5,8 @@ export enum AppState {
   SCHEDULE = 'SCHEDULE',
   DEVICE_CHECK = 'DEVICE_CHECK', // The "Green Room"
   ACTIVE = 'ACTIVE',
+  PAYMENT = 'PAYMENT',
+  WAITING_ROOM = 'WAITING_ROOM',
 }
 
 export interface Segment {

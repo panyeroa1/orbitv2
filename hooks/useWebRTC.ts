@@ -17,13 +17,21 @@ interface WebRTCHookProps {
   userName: string;
   localStream: MediaStream | null;
   isHost: boolean;
+  onControlSignal?: (action: string, payload?: any) => void;
 }
 
-export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: WebRTCHookProps) => {
+export interface JoinRequest {
+  userId: string;
+  userName: string;
+  timestamp: number;
+}
+
+export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost, onControlSignal }: WebRTCHookProps) => {
   const [remoteParticipants, setRemoteParticipants] = useState<Participant[]>([]);
   const [streams, setStreams] = useState<Record<string, MediaStream>>({});
   const [notifications, setNotifications] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   
   const channelRef = useRef<RealtimeChannel | null>(null);
   const peersRef = useRef<Record<string, RTCPeerConnection>>({});
@@ -61,7 +69,7 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
         users.forEach(u => {
           if (u.userId !== userId && !userMapRef.current[u.userId]) {
              // New user detected via presence
-             if (isHost) addNotification(`${u.userName || 'Guest'} joined the lobby.`);
+             // if (isHost) addNotification(`${u.userName || 'Guest'} joined the lobby.`); // Handled by join request now
           }
           userMapRef.current[u.userId] = u;
         });
@@ -69,8 +77,9 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         newPresences.forEach((user: any) => {
            if (user.userId !== userId) {
-             console.log('User joined:', user.userId);
-             // Initiate connection to the new user
+             console.log('User joined presence:', user.userId);
+             // We don't auto-connect here anymore for strict waiting room logic, 
+             // but to keep video ready, we can establish PC but keep them hidden in UI until approved.
              createPeerConnection(user.userId, true); 
            }
         });
@@ -81,6 +90,7 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
                 console.log('User left:', user.userId);
                 removePeerConnection(user.userId);
                 addNotification(`${user.userName || 'Guest'} left.`);
+                setJoinRequests(prev => prev.filter(r => r.userId !== user.userId));
             }
         });
       })
@@ -95,8 +105,27 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
              if (prev.find(m => m.id === payload.id)) return prev;
              return [...prev, payload];
          });
-         // If sidebar is closed, maybe add notification?
-         // addNotification(`New message from ${payload.senderName}`);
+      })
+      .on('broadcast', { event: 'control' }, ({ payload }) => {
+          // Handle signals targeted at me or broadcast
+          if (payload.target === userId || payload.target === 'all') {
+              if (onControlSignal) onControlSignal(payload.action, payload);
+          }
+          
+          // Internal handling for state updates (e.g., screen sharing toggle)
+          if (payload.action === 'state_update' && payload.senderId !== userId) {
+              updateRemoteParticipant(payload.senderId, payload.data);
+          }
+          
+          // Host logic for receiving join requests
+          if (isHost && payload.action === 'join_request') {
+              setJoinRequests(prev => {
+                  if (prev.find(r => r.userId === payload.senderId)) return prev;
+                  return [...prev, { userId: payload.senderId, userName: payload.senderName, timestamp: Date.now() }];
+              });
+              // Trigger audio notification via callback if needed, or rely on state change in App
+              if (onControlSignal) onControlSignal('join_request_received', payload);
+          }
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -112,7 +141,6 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
 
   // 2. Handle Local Stream Changes
   useEffect(() => {
-    // If local stream changes (e.g. camera switch), we need to update tracks in all peer connections
     if (localStream) {
         Object.values(peersRef.current).forEach(pc => {
             const senders = pc.getSenders();
@@ -160,8 +188,6 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
     pc.ontrack = (event) => {
         const remoteStream = event.streams[0];
         setStreams(prev => ({ ...prev, [remotePeerId]: remoteStream }));
-        
-        // Update participant list entry to show they have video
         updateRemoteParticipant(remotePeerId, { isVideoOn: true }); 
     };
 
@@ -187,7 +213,7 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
         });
     }
 
-    // Add to participants list
+    // Add to participants list (initially)
     setRemoteParticipants(prev => {
         if (prev.find(p => p.id === remotePeerId)) return prev;
         return [...prev, {
@@ -196,7 +222,8 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
             role: 'guest',
             isMuted: false, 
             isVideoOn: true,
-            isSpeaking: false
+            isSpeaking: false,
+            isScreenSharing: false
         }];
     });
   };
@@ -204,7 +231,6 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
   const handleSignal = async (payload: any) => {
       const { sender, type, sdp, candidate } = payload;
       
-      // If we don't have a PC yet (e.g. we are the receiver), create it
       if (!peersRef.current[sender]) {
           await createPeerConnection(sender, false);
       }
@@ -253,7 +279,6 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
 
   const sendMessage = async (text: string) => {
       if (!channelRef.current) return;
-      
       const msg = {
           id: Date.now().toString(),
           text,
@@ -261,10 +286,7 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
           senderName: userName,
           timestamp: new Date().toISOString()
       };
-      
-      // Optimistic update
       setChatMessages(prev => [...prev, msg]);
-
       await channelRef.current.send({
           type: 'broadcast',
           event: 'chat',
@@ -272,5 +294,31 @@ export const useWebRTC = ({ sessionId, userId, userName, localStream, isHost }: 
       });
   };
 
-  return { remoteParticipants, streams, notifications, chatMessages, sendMessage };
+  const sendControlSignal = async (targetId: string, action: string, data?: any) => {
+      if (!channelRef.current) return;
+      await channelRef.current.send({
+          type: 'broadcast',
+          event: 'control',
+          payload: {
+              target: targetId,
+              action,
+              senderId: userId,
+              senderName: userName,
+              data: data, // Unpack data if provided
+              ...data
+          }
+      });
+  };
+
+  const resolveJoinRequest = (requesterId: string, accepted: boolean) => {
+      setJoinRequests(prev => prev.filter(r => r.userId !== requesterId));
+      if (accepted) {
+          sendControlSignal(requesterId, 'join_accepted');
+          addNotification(`Accepted ${userMapRef.current[requesterId]?.userName || 'User'}`);
+      } else {
+          sendControlSignal(requesterId, 'join_denied');
+      }
+  };
+
+  return { remoteParticipants, streams, notifications, chatMessages, sendMessage, sendControlSignal, joinRequests, resolveJoinRequest };
 };
