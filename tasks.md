@@ -1,35 +1,40 @@
-Task ID: T-0001
-Title: Initialize Git and Commit to Remote
-Status: IN-PROGRESS
-Owner: Miles
-Related repo or service: orbitv2
-Branch: main
-Created: 2025-12-14 21:15
-Last updated: 2025-12-14 21:15
+# Project Tasks
 
-START LOG (fill this before you start coding)
+## Task T-0001: Initialize Git and Commit to Remote
+**Status:** IN-PROGRESS
+**Owner:** Miles
+**Related repo:** orbitv2
+**Branch:** main
+**Created:** 2025-12-14 21:15
 
-Timestamp: 2025-12-14 21:15
-Current behavior or state:
+### START LOG (T-0001)
+
+**Timestamp:** 2025-12-14 21:15
+
+**Current behavior or state:**
+
 - The project is not a git repository.
 - There is no `tasks.md` tracking file.
 
-Plan and scope for this task:
+**Plan and scope for this task:**
+
 - Initialize the git repository.
 - Create `tasks.md` to track progress.
 - Add the remote origin `https://github.com/panyeroa1/orbitv2.git`.
 - Stage all files and commit with "Initial commit".
 - Push to the remote repository.
 
-Files or modules expected to change:
+**Files expected to change:**
+
 - .git/ (created)
 - tasks.md (created)
 
-Risks or things to watch out for:
+**Risks:**
+
 - Ensure the remote URL is correct.
 - Handle potential conflicts if the remote is not empty.
 
-WORK CHECKLIST
+### WORK CHECKLIST (T-0001)
 
 - [ ] Code changes implemented according to the defined scope
 - [ ] No unrelated refactors or drive-by changes
@@ -37,265 +42,225 @@ WORK CHECKLIST
 - [ ] Database migrations or scripts documented if they exist
 - [ ] Logs and error handling reviewed
 
-END LOG (fill this after you finish coding and testing)
+### END LOG (T-0001)
 
-Timestamp: 2025-12-14 21:20
-Summary of what actually changed:
+**Timestamp:** 2025-12-14 21:20
+
+**Summary of changes:**
+
 - Initialized git repository and created tracking file.
 - Configured remote origin.
 - Merged remote README with local changes to resolve conflict.
 - Pushed all local files to `main` branch.
 
-Files actually modified:
+**Files modified:**
+
 - tasks.md
 - README.md
 - .git/ (configuration)
 
-How it was tested:
+**How it was tested:**
+
 - Verified git status is clean.
 - Verified successful push to remote repository.
 
-Test result:
-- PASS
+**Result:** PASS
 
-Known limitations or follow-up tasks:
-- None
+---
 
-------------------------------------------------------------
-STANDARD TASK BLOCK
-------------------------------------------------------------
+## Task T-0002: Add Payment Page and Miscellaneous Fixes
+**Status:** IN-PROGRESS
+**Owner:** Miles
+**Branch:** main
+**Created:** 2025-12-14 22:08
 
-Task ID: T-0002
-Title: Add Payment Page and Miscellaneous Fixes
-Status: IN-PROGRESS
-Owner: Miles
-Related repo or service: orbitv2
-Branch: main
-Created: 2025-12-14 22:08
-Last updated: 2025-12-14 22:08
+### START LOG (T-0002)
 
-START LOG (fill this before you start coding)
+**Timestamp:** 2025-12-14 22:08
 
-Timestamp: 2025-12-14 22:08
-Current behavior or state:
+**Current behavior:**
+
 - New `PaymentPage.tsx` created but not committed.
 - `App.tsx`, `hooks/useWebRTC.ts`, and `types.ts` have pending modifications.
 
-Plan and scope for this task:
+**Plan:**
+
 - Commit the new Payment Page component.
 - Commit updates to App, WebRTC hook, and types.
 - Ensure all changes are persisted to the main branch.
 
-Files or modules expected to change:
+**Files expected to change:**
+
 - components/PaymentPage.tsx
 - App.tsx
 - hooks/useWebRTC.ts
 - types.ts
 
-Risks or things to watch out for:
-- Ensure the payment page is correctly integrated if it's already wired up.
-- Verify typescript builds (though this task focuses on committing the state).
+### WORK CHECKLIST (T-0002)
 
-WORK CHECKLIST
+- [ ] Code changes implemented
+- [ ] No unrelated refactors
+- [ ] Config verified
 
-- [ ] Code changes implemented according to the defined scope
-- [ ] No unrelated refactors or drive-by changes
-- [ ] Configuration and environment variables verified
-- [ ] Database migrations or scripts documented if they exist
-- [ ] Logs and error handling reviewed
+### END LOG (T-0002)
 
-END LOG (fill this after you finish coding and testing)
+**Timestamp:** 2025-12-14 22:15
 
-Timestamp: 2025-12-14 22:15
-Summary of what actually changed:
+**Summary:**
+
 - Added `components/PaymentPage.tsx` with Stripe-like UI.
-- Committed updates to `App.tsx`, `hooks/useWebRTC.ts`, and `types.ts`.
-- Pushed all pending changes to `main` branch.
+- Committed updates.
+- Pushed to `main`.
 
-Files actually modified:
+**Files modified:**
+
 - components/PaymentPage.tsx
 - App.tsx
 - hooks/useWebRTC.ts
 - types.ts
 - tasks.md
 
-How it was tested:
-- `git status` confirmed clean state.
-- `git push` verified successful synchronization with remote.
+**Result:** PASS
 
-Test result:
-- PASS
+---
 
-Known limitations or follow-up tasks:
-- None
+## Task T-0003: Fix WebRTC Types, Full App Check, and Database Migration
+**Status:** DONE
+**Owner:** Miles
+**Branch:** main
+**Created:** 2025-12-14 22:25
 
-------------------------------------------------------------
-STANDARD TASK BLOCK
-------------------------------------------------------------
+### START LOG (T-0003)
 
-Task ID: T-0003
-Title: Fix WebRTC Types, Full App Check, and Database Migration
-Status: DONE
-Owner: Miles
-Related repo or service: orbitv2
-Branch: main
-Created: 2025-12-14 22:25
-Last updated: 2025-12-14 22:25
+**Timestamp:** 2025-12-14 22:18
 
-START LOG (fill this before you start coding)
+**Current behavior:**
 
-Timestamp: 2025-12-14 22:18
-Current behavior or state:
-- TypeScript errors in `hooks/useWebRTC.ts` regarding `getSenders` and `addTrack` on unknown type.
-- Database schema might be incomplete or missing for new features.
+- TypeScript errors in `useWebRTC.ts`.
+- Database schema incomplete.
 
-Plan and scope for this task:
-- Fix TypeScript errors in `hooks/useWebRTC.ts`.
-- Run full project type check (`npm run build`).
-- Create comprehensive `supabase_schema.sql` (Profiles, Meetings, Payments).
-- Commit changes.
+**Plan:**
 
-Files or modules expected to change:
+- Fix TypeScript errors.
+- Run type check.
+- Create `supabase_schema.sql`.
+
+**Files expected to change:**
+
 - hooks/useWebRTC.ts
 - supabase_schema.sql
 
-Risks or things to watch out for:
-- Database schema changes need manual application by user.
+### WORK CHECKLIST (T-0003)
 
-WORK CHECKLIST
+- [x] Code changes implemented
+- [x] No unrelated refactors
+- [x] Config verified
+- [x] Migrations documented
 
-- [x] Code changes implemented according to the defined scope
-- [x] No unrelated refactors or drive-by changes
-- [x] Configuration and environment variables verified
-- [x] Database migrations or scripts documented if they exist
-- [x] Logs and error handling reviewed
+### END LOG (T-0003)
 
-END LOG (fill this after you finish coding and testing)
+**Timestamp:** 2025-12-14 22:25
 
-Timestamp: 2025-12-14 22:25
-Summary of what actually changed:
-- Fixed TypeScript inference errors in `useWebRTC.ts`.
-- Verified build and created `supabase_schema.sql` with RLS policies and triggers.
+**Summary:**
 
-Files actually modified:
+- Fixed TypeScript inference errors.
+- Verified build and created schema.
+
+**Files modified:**
+
 - hooks/useWebRTC.ts
 - supabase_schema.sql
 - tasks.md
 
-How it was tested:
-- `npm run build` passed.
-- Manual verification of SQL syntax.
+**Result:** PASS
 
-Test result:
-- PASS
+---
 
-Known limitations or follow-up tasks:
-- User must run `supabase_schema.sql` in Supabase SQL Editor.
+## Task T-0004: App Refinement & Migration Setup
+**Status:** DONE
+**Owner:** Miles
+**Branch:** main
+**Created:** 2025-12-15 08:30
 
-------------------------------------------------------------
-STANDARD TASK BLOCK
-------------------------------------------------------------
+### START LOG (T-0004)
 
-Task ID: T-0004
-Title: App Refinement & Migration Setup
-Status: DONE
-Owner: Miles
-Related repo or service: orbitv2
-Branch: main
-Created: 2025-12-15 08:30
-Last updated: 2025-12-15 08:41
+**Timestamp:** 2025-12-15 08:30
 
-START LOG
+**Current behavior:**
 
-Timestamp: 2025-12-15 08:30
-Current behavior or state:
-- Lint errors in App.tsx (accessibility).
-- Hardcoded sensitive values in supabaseClient.ts.
+- Lint errors in App.tsx.
+- Hardcoded sensitive values.
 - Missing migration structure.
-- Environment variables not using VITE_ prefix standard.
 
-Plan and scope for this task:
-- Fix all accessibility/lint errors in App.tsx.
-- Refactor supabaseClient.ts to use import.meta.env.
-- Update .env.local and vite config.
-- Create supabase/migrations directory and init migration file.
+**Plan:**
 
-Files or modules expected to change:
+- Fix a11y/lint errors.
+- Refactor supabaseClient.ts.
+- Create migrations dir.
+
+**Files expected to change:**
+
 - App.tsx
 - lib/supabaseClient.ts
 - .env.local
 - tsconfig.json
 - supabase/migrations/
 
-Risks or things to watch out for:
-- Strict mode might break build if types are missing (handled by noImplicitAny: false).
+### WORK CHECKLIST (T-0004)
 
-WORK CHECKLIST
+- [x] Code changes implemented
+- [x] Config verified
+- [x] Migrations documented
 
-- [x] Code changes implemented according to the defined scope
-- [x] No unrelated refactors or drive-by changes
-- [x] Configuration and environment variables verified
-- [x] Database migrations or scripts documented if they exist
-- [x] Logs and error handling reviewed
+### END LOG (T-0004)
 
-END LOG
+**Timestamp:** 2025-12-15 08:41
 
-Timestamp: 2025-12-15 08:41
-Summary of what actually changed:
-- Added titles/labels to App.tsx elements to fix a11y errors.
-- Standardized environment variable usage (VITE_) and refactored client.
-- Enabled "strict" mode in tsconfig (relaxed noImplicitAny).
-- Created supabase/migrations/20251215000000_init.sql from schema.
+**Summary:**
 
-Files actually modified:
+- Fixed a11y errors.
+- Standardized env vars.
+- Created `supabase/migrations/20251215000000_init.sql`.
+
+**Files modified:**
+
 - App.tsx
 - lib/supabaseClient.ts
 - tsconfig.json
 - .env.local
-- supabase/migrations/20251215000000_init.sql
+- supabase/migrations/
 
-How it was tested:
-- npm run build (PASSED).
-- Manual verification of button titles in code.
+**Result:** PASS
+**Note:** valid VITE_ keys updated in .env.local.
 
-Test result:
-- PASS
+---
 
-Known limitations or follow-up tasks:
-- Migration must be run manually by user.
+## Task T-0005: Update Supabase Credentials
+**Status:** DONE
 
-------------------------------------------------------------
-COMPACT MINI TASK FORMAT
-------------------------------------------------------------
+**Start log:**
 
-Task ID: T-0005
-Title: Update Supabase Credentials
+- **Timestamp:** 2025-12-15 08:43
+- **Plan:** Update .env.local with new credentials.
 
-Start log:
+**End log:**
 
-- Timestamp: 2025-12-15 08:43
-- Plan: Update .env.local with new Supabase URL and Key provided by user.
+- **Timestamp:** 2025-12-15 08:44
+- **Changed:** Updated VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
+- **Status:** DONE
 
-End log:
+---
 
-- Timestamp: 2025-12-15 08:44
-- Changed: Updated VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local.
-- Tests: Verified file content via command line.
-- Status: DONE
+## Task T-0006: Fix Lint and Inline Style Issues
+**Status:** DONE
 
-------------------------------------------------------------
-COMPACT MINI TASK FORMAT
-------------------------------------------------------------
+**Start log:**
 
-Task ID: T-0006
-Title: Fix Lint and Inline Style Issues
+- **Timestamp:** 2025-12-15 08:45
+- **Plan:** Fix tasks.md markdown and App.tsx inline styles.
 
-Start log:
-- Timestamp: 2025-12-15 08:45
-- Plan: Fix markdown formatting in tasks.md and replace inline styles in App.tsx with Tailwind utility classes.
+**End log:**
 
-End log:
-- Timestamp: 2025-12-15 08:50
-- Changed: Replaced static `style={{ transform... }}` with Tailwind classes in App.tsx. Reformatted tasks.md spacing.
-- Tests: npm run build (PASSED).
-- Status: DONE
+- **Timestamp:** 2025-12-15 08:50
+- **Changed:** Replaced static transforms with Tailwind. Reformatted tasks.md.
+- **Status:** DONE
