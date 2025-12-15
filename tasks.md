@@ -1,6 +1,7 @@
 # Project Tasks
 
 ## Task T-0001: Initialize Git and Commit to Remote
+
 **Status:** IN-PROGRESS
 **Owner:** Miles
 **Related repo:** orbitv2
@@ -69,6 +70,7 @@
 ---
 
 ## Task T-0002: Add Payment Page and Miscellaneous Fixes
+
 **Status:** IN-PROGRESS
 **Owner:** Miles
 **Branch:** main
@@ -125,6 +127,7 @@
 ---
 
 ## Task T-0003: Fix WebRTC Types, Full App Check, and Database Migration
+
 **Status:** DONE
 **Owner:** Miles
 **Branch:** main
@@ -177,6 +180,7 @@
 ---
 
 ## Task T-0004: App Refinement & Migration Setup
+
 **Status:** DONE
 **Owner:** Miles
 **Branch:** main
@@ -236,6 +240,7 @@
 ---
 
 ## Task T-0005: Update Supabase Credentials
+
 **Status:** DONE
 
 **Start log:**
@@ -252,6 +257,7 @@
 ---
 
 ## Task T-0006: Fix Lint and Inline Style Issues
+
 **Status:** DONE
 
 **Start log:**
