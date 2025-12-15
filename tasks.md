@@ -189,3 +189,75 @@ Test result:
 
 Known limitations or follow-up tasks:
 - User must run `supabase_schema.sql` in Supabase SQL Editor.
+
+------------------------------------------------------------
+STANDARD TASK BLOCK
+------------------------------------------------------------
+
+Task ID: T-0004
+Title: App Refinement & Migration Setup
+Status: DONE
+Owner: Miles
+Related repo or service: orbitv2
+Branch: main
+Created: 2025-12-15 08:30
+Last updated: 2025-12-15 08:41
+
+START LOG
+
+Timestamp: 2025-12-15 08:30
+Current behavior or state:
+- Lint errors in App.tsx (accessibility).
+- Hardcoded sensitive values in supabaseClient.ts.
+- Missing migration structure.
+- Environment variables not using VITE_ prefix standard.
+
+Plan and scope for this task:
+- Fix all accessibility/lint errors in App.tsx.
+- Refactor supabaseClient.ts to use import.meta.env.
+- Update .env.local and vite config.
+- Create supabase/migrations directory and init migration file.
+
+Files or modules expected to change:
+- App.tsx
+- lib/supabaseClient.ts
+- .env.local
+- tsconfig.json
+- supabase/migrations/
+
+Risks or things to watch out for:
+- Strict mode might break build if types are missing (handled by noImplicitAny: false).
+
+WORK CHECKLIST
+
+- [x] Code changes implemented according to the defined scope
+- [x] No unrelated refactors or drive-by changes
+- [x] Configuration and environment variables verified
+- [x] Database migrations or scripts documented if they exist
+- [x] Logs and error handling reviewed
+
+END LOG
+
+Timestamp: 2025-12-15 08:41
+Summary of what actually changed:
+- Added titles/labels to App.tsx elements to fix a11y errors.
+- Standardized environment variable usage (VITE_) and refactored client.
+- Enabled "strict" mode in tsconfig (relaxed noImplicitAny).
+- Created supabase/migrations/20251215000000_init.sql from schema.
+
+Files actually modified:
+- App.tsx
+- lib/supabaseClient.ts
+- tsconfig.json
+- .env.local
+- supabase/migrations/20251215000000_init.sql
+
+How it was tested:
+- npm run build (PASSED).
+- Manual verification of button titles in code.
+
+Test result:
+- PASS
+
+Known limitations or follow-up tasks:
+- Migration must be run manually by user.

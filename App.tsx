@@ -935,8 +935,8 @@ const App: React.FC = () => {
                 <div className="space-y-4">
                     <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase ml-1">Topic</label><input type="text" placeholder="e.g. Weekly Sync" value={scheduleForm.topic} onChange={(e) => setScheduleForm({...scheduleForm, topic: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none transition-colors" /></div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase ml-1">Date</label><input type="date" value={scheduleForm.date} onChange={(e) => setScheduleForm({...scheduleForm, date: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none transition-colors [color-scheme:dark]" /></div>
-                        <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase ml-1">Time</label><input type="time" value={scheduleForm.time} onChange={(e) => setScheduleForm({...scheduleForm, time: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none transition-colors [color-scheme:dark]" /></div>
+                        <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase ml-1">Date</label><input title="Select Date" type="date" value={scheduleForm.date} onChange={(e) => setScheduleForm({...scheduleForm, date: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none transition-colors [color-scheme:dark]" /></div>
+                        <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase ml-1">Time</label><input title="Select Time" type="time" value={scheduleForm.time} onChange={(e) => setScheduleForm({...scheduleForm, time: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none transition-colors [color-scheme:dark]" /></div>
                     </div>
                     <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase ml-1">Guests (Emails)</label><textarea placeholder="Enter emails separated by commas..." value={scheduleForm.guests} onChange={(e) => setScheduleForm({...scheduleForm, guests: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none transition-colors h-24 resize-none" /></div>
                 </div>
@@ -1016,6 +1016,7 @@ const App: React.FC = () => {
                               </div>
                           </div>
                           <button 
+                            title="Toggle Transmit Audio"
                             onClick={() => setMeetingSettings(s => ({ ...s, transmitRawAudio: !s.transmitRawAudio }))}
                             className={`w-10 h-5 rounded-full p-1 transition-colors ${meetingSettings.transmitRawAudio ? 'bg-green-500' : 'bg-white/10'}`}
                           >
@@ -1074,7 +1075,7 @@ const App: React.FC = () => {
 
   const renderActive = () => (
     <div className={`flex h-screen w-full relative bg-[#0a0a0a] overflow-hidden ${isScreenSharing ? 'border-4 border-green-500' : ''}`}>
-       <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="*/*" />
+       <input title="Upload File" type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="*/*" />
 
        {/* Notifications */}
        <div className="absolute top-20 right-4 z-50 flex flex-col space-y-2 pointer-events-none">
@@ -1198,7 +1199,7 @@ const App: React.FC = () => {
                 <DockButton icon={<Settings />} onClick={() => setShowSettings(true)} label="Settings" />
                 <div className="w-px h-8 bg-white/10 mx-2"></div>
                 <DockButton icon={<DollarSign className="text-neon" />} onClick={() => setAppState(AppState.PAYMENT)} label="Donate" />
-                <button onClick={() => { sttRef.current?.stop(); setAppState(AppState.LANDING); }} className="bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl transition-colors"><PhoneOff size={20} /></button>
+                <button title="End Meeting" onClick={() => { sttRef.current?.stop(); setAppState(AppState.LANDING); }} className="bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl transition-colors"><PhoneOff size={20} /></button>
              </div>
           </div>
           
