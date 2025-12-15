@@ -888,17 +888,17 @@ const App: React.FC = () => {
              <h2 className="text-2xl font-display font-bold text-white text-center">Join Meeting</h2>
              <div className="space-y-4">
                  <div>
-                     <label className="text-xs text-secondary font-bold uppercase ml-1">Meeting ID</label>
-                     <input type="text" value={joinInputId} onChange={(e) => setJoinInputId(e.target.value)} placeholder="000-000-000" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none font-mono text-lg text-center tracking-widest" />
+                     <label htmlFor="meeting-id-input" className="text-xs text-secondary font-bold uppercase ml-1">Meeting ID</label>
+                     <input id="meeting-id-input" type="text" value={joinInputId} onChange={(e) => setJoinInputId(e.target.value)} placeholder="000-000-000" title="Meeting ID" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none font-mono text-lg text-center tracking-widest" />
                  </div>
                  <div>
-                     <label className="text-xs text-secondary font-bold uppercase ml-1">Passcode</label>
-                     <input type="password" value={joinInputPass} onChange={(e) => setJoinInputPass(e.target.value)} placeholder="••••••" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none font-mono text-lg text-center tracking-widest" />
+                     <label htmlFor="passcode-input" className="text-xs text-secondary font-bold uppercase ml-1">Passcode</label>
+                     <input id="passcode-input" type="password" value={joinInputPass} onChange={(e) => setJoinInputPass(e.target.value)} placeholder="••••••" title="Passcode" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-neon outline-none font-mono text-lg text-center tracking-widest" />
                  </div>
              </div>
              <div className="flex space-x-3 pt-4">
-                  <button onClick={() => setAppState(AppState.LANDING)} className="flex-1 bg-white/5 text-white py-3 rounded-xl hover:bg-white/10 font-medium transition-colors">Cancel</button>
-                  <button onClick={() => { if (joinInputId && joinInputPass) { setSessionInfo({ id: joinInputId, passcode: joinInputPass, link: '', isHost: false }); setAppState(AppState.DEVICE_CHECK); setIsVideoActive(true); setIsMicActive(true); } }} className="flex-1 bg-neon text-black font-bold py-3 rounded-xl hover:bg-white transition-colors shadow-[0_0_20px_rgba(0,243,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed" disabled={!joinInputId || !joinInputPass}>Join</button>
+                  <button onClick={() => setAppState(AppState.LANDING)} className="flex-1 bg-white/5 text-white py-3 rounded-xl hover:bg-white/10 font-medium transition-colors" title="Cancel Join">Cancel</button>
+                  <button onClick={() => { if (joinInputId && joinInputPass) { setSessionInfo({ id: joinInputId, passcode: joinInputPass, link: '', isHost: false }); setAppState(AppState.DEVICE_CHECK); setIsVideoActive(true); setIsMicActive(true); } }} className="flex-1 bg-neon text-black font-bold py-3 rounded-xl hover:bg-white transition-colors shadow-[0_0_20px_rgba(0,243,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed" disabled={!joinInputId || !joinInputPass} title="Join Meeting">Join</button>
              </div>
         </div>
       </div>
@@ -974,8 +974,8 @@ const App: React.FC = () => {
                   
                   <div className="space-y-4 flex-1">
                       {/* Audio & Video Selection */}
-                      <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase flex items-center"><Mic size={12} className="mr-1"/> Microphone</label><select value={selectedMicId} onChange={(e) => setSelectedMicId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:border-neon outline-none">{audioDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}</select></div>
-                      <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase flex items-center"><Video size={12} className="mr-1"/> Camera</label><select value={selectedCamId} onChange={(e) => setSelectedCamId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:border-neon outline-none">{videoDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}</select></div>
+                      <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase flex items-center"><Mic size={12} className="mr-1"/> Microphone</label><select title="Select Microphone" value={selectedMicId} onChange={(e) => setSelectedMicId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:border-neon outline-none">{audioDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}</select></div>
+                      <div className="space-y-1"><label className="text-xs text-secondary font-bold uppercase flex items-center"><Video size={12} className="mr-1"/> Camera</label><select title="Select Camera" value={selectedCamId} onChange={(e) => setSelectedCamId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:border-neon outline-none">{videoDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}</select></div>
                       
                       {/* Language Selection */}
                       <div className="space-y-1 pt-2 border-t border-white/5">
@@ -984,6 +984,7 @@ const App: React.FC = () => {
                                <div>
                                    <label className="text-[10px] text-secondary uppercase">I Speak</label>
                                    <select 
+                                       title="Source Language"
                                        value={config.sourceLang} 
                                        onChange={(e) => setConfig(prev => ({ ...prev, sourceLang: e.target.value }))}
                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-neon outline-none"
@@ -994,6 +995,7 @@ const App: React.FC = () => {
                                <div>
                                    <label className="text-[10px] text-secondary uppercase">Translate To</label>
                                    <select 
+                                       title="Target Language"
                                        value={config.targetLang} 
                                        onChange={(e) => setConfig(prev => ({ ...prev, targetLang: e.target.value }))}
                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-neon outline-none"
@@ -1109,7 +1111,7 @@ const App: React.FC = () => {
             <div className="w-full max-w-4xl h-[80vh] bg-surface border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-black/40">
                   <h2 className="text-2xl font-display font-bold text-white flex items-center space-x-3"><Settings className="text-neon" /><span>Settings</span></h2>
-                  <button onClick={() => setShowSettings(false)} className="p-2 hover:bg-white/10 rounded-full text-white"><X /></button>
+                  <button title="Close Settings" onClick={() => setShowSettings(false)} className="p-2 hover:bg-white/10 rounded-full text-white"><X /></button>
                </div>
                <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="col-span-1 md:col-span-2 space-y-4 border-b border-white/10 pb-6 mb-2">
@@ -1126,7 +1128,7 @@ const App: React.FC = () => {
                         <ToggleOption label="Auto-Summarize" active={meetingSettings.autoSummarize} onClick={() => setMeetingSettings(s => ({...s, autoSummarize: !s.autoSummarize}))} icon={<FileText size={16} />} />
                         <ToggleOption label="Hear Own Translation" active={meetingSettings.hearOwnTranslation} onClick={() => setMeetingSettings(s => ({...s, hearOwnTranslation: !s.hearOwnTranslation}))} icon={<Volume2 size={16} />} />
                         <ToggleOption label="Transmit Raw Audio" active={meetingSettings.transmitRawAudio} onClick={() => setMeetingSettings(s => ({...s, transmitRawAudio: !s.transmitRawAudio}))} icon={<Signal size={16} />} />
-                        <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5"><div className="flex items-center space-x-3 text-white"><Speaker size={16} /><span className="text-sm font-medium">AI Voice</span></div><select value={meetingSettings.voice} onChange={(e) => setMeetingSettings(s => ({...s, voice: e.target.value as any}))} className="bg-black/40 text-white text-xs p-2 rounded border border-white/10 outline-none"><option value="Aoede">Female (Aoede)</option><option value="Charon">Male (Orus)</option><option value="Puck">Male (Puck)</option><option value="Fenrir">Male (Deep)</option></select></div>
+                        <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5"><div className="flex items-center space-x-3 text-white"><Speaker size={16} /><span className="text-sm font-medium">AI Voice</span></div><select title="Select AI Voice" value={meetingSettings.voice} onChange={(e) => setMeetingSettings(s => ({...s, voice: e.target.value as any}))} className="bg-black/40 text-white text-xs p-2 rounded border border-white/10 outline-none"><option value="Aoede">Female (Aoede)</option><option value="Charon">Male (Orus)</option><option value="Puck">Male (Puck)</option><option value="Fenrir">Male (Deep)</option></select></div>
                      </div>
                   </div>
                </div>
@@ -1236,7 +1238,7 @@ const App: React.FC = () => {
                             {participantsViewMode === 'list' ? <Grid size={18} /> : <List size={18} />}
                         </button>
                     )}
-                    <button onClick={() => setIsSidebarOpen(false)}><X className="text-white/50 hover:text-white" size={20} /></button>
+                    <button title="Close Sidebar" onClick={() => setIsSidebarOpen(false)}><X className="text-white/50 hover:text-white" size={20} /></button>
                 </div>
              </div>
              <div className="flex-1 overflow-y-auto p-2">
@@ -1324,8 +1326,8 @@ const App: React.FC = () => {
                                     </div>
                                     {sessionInfo?.isHost && p.id !== 'user-1' && (
                                         <div className="absolute top-1 right-1 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <button onClick={() => toggleParticipantMute(p.id)} className="p-1 bg-black/60 hover:bg-black/80 rounded text-white"><MicOff size={10} /></button>
-                                             <button onClick={() => removeParticipant(p.id)} className="p-1 bg-red-600/60 hover:bg-red-600/80 rounded text-white"><UserMinus size={10} /></button>
+                                             <button title="Mute Participant" onClick={() => toggleParticipantMute(p.id)} className="p-1 bg-black/60 hover:bg-black/80 rounded text-white"><MicOff size={10} /></button>
+                                             <button title="Remove Participant" onClick={() => removeParticipant(p.id)} className="p-1 bg-red-600/60 hover:bg-red-600/80 rounded text-white"><UserMinus size={10} /></button>
                                         </div>
                                     )}
                                 </div>
@@ -1348,7 +1350,7 @@ const App: React.FC = () => {
                                     <span className="text-[10px] text-white/30">{msg.timestamp.toLocaleTimeString()}</span>
                                 </div>
                                 <p className="text-sm text-white/80 whitespace-pre-wrap">{msg.text}</p>
-                                {msg.attachment && ( <div className="mt-2 p-2 bg-black/30 rounded border border-white/10 flex items-center space-x-3"><div className="p-2 bg-white/10 rounded">{msg.attachment.type.startsWith('image/') ? <FileText size={16} /> : <File size={16} />}</div><div className="flex-1 min-w-0"><div className="text-xs font-medium truncate">{msg.attachment.name}</div><div className="text-[10px] text-white/40">{(msg.attachment.size / 1024).toFixed(1)} KB</div></div><a href={msg.attachment.url} download={msg.attachment.name} className="p-1 hover:bg-white/10 rounded"><Download size={14} /></a></div> )}
+                                {msg.attachment && ( <div className="mt-2 p-2 bg-black/30 rounded border border-white/10 flex items-center space-x-3"><div className="p-2 bg-white/10 rounded">{msg.attachment.type.startsWith('image/') ? <FileText size={16} /> : <File size={16} />}</div><div className="flex-1 min-w-0"><div className="text-xs font-medium truncate">{msg.attachment.name}</div><div className="text-[10px] text-white/40">{(msg.attachment.size / 1024).toFixed(1)} KB</div></div><a href={msg.attachment.url} download={msg.attachment.name} title={`Download ${msg.attachment.name}`} className="p-1 hover:bg-white/10 rounded"><Download size={14} /></a></div> )}
                              </div>
                            ))
                          )}
@@ -1362,7 +1364,7 @@ const App: React.FC = () => {
                             placeholder="Type a message..." 
                             className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder-white/30"
                           />
-                          <button onClick={handleChatSend} disabled={!chatInput.trim()} className="p-2 bg-neon/10 hover:bg-neon/20 text-neon rounded-lg disabled:opacity-50 transition-colors">
+                          <button title="Send Message" onClick={handleChatSend} disabled={!chatInput.trim()} className="p-2 bg-neon/10 hover:bg-neon/20 text-neon rounded-lg disabled:opacity-50 transition-colors">
                               <Send size={16} />
                           </button>
                       </div>
@@ -1425,6 +1427,7 @@ const App: React.FC = () => {
 const DockButton: React.FC<{ icon: React.ReactNode, label: string, onClick?: () => void, active?: boolean, count?: number }> = ({ icon, label, onClick, active, count }) => (
   <button 
     onClick={onClick}
+    title={label}
     className={`group relative p-3 rounded-xl transition-all duration-300 ${active ? 'bg-white/20 text-white scale-110' : 'hover:bg-white/10 text-white/70 hover:text-white hover:-translate-y-1'}`}
   >
     <div className="relative">
@@ -1438,7 +1441,7 @@ const DockButton: React.FC<{ icon: React.ReactNode, label: string, onClick?: () 
 );
 
 const ToggleOption: React.FC<{ label: string, active: boolean, onClick: () => void, icon: React.ReactNode }> = ({ label, active, onClick, icon }) => (
-   <button onClick={onClick} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${active ? 'bg-neon/10 border-neon/50 text-white' : 'bg-transparent border-white/10 text-white/50 hover:bg-white/5'}`}>
+   <button title={label} onClick={onClick} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${active ? 'bg-neon/10 border-neon/50 text-white' : 'bg-transparent border-white/10 text-white/50 hover:bg-white/5'}`}>
       <div className="flex items-center space-x-3">
          <div className={`p-2 rounded-lg ${active ? 'bg-neon text-black' : 'bg-white/10'}`}>{icon}</div>
          <span className="text-sm font-medium">{label}</span>
