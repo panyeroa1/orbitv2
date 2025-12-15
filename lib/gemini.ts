@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-export const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 // Orbits uses the Flash model for low-latency logical translation
 export const MODEL_TRANSLATOR = 'gemini-2.5-flash';
