@@ -270,3 +270,37 @@
 - **Timestamp:** 2025-12-15 08:50
 - **Changed:** Replaced static transforms with Tailwind. Reformatted tasks.md.
 - **Status:** DONE
+
+---
+
+## Task T-0007: Fix STT and Update Migration
+
+**Status:** DONE
+
+**Start log:**
+
+- **Timestamp:** 2025-12-15 08:52
+- **Plan:** Update migration file to support App-generated text IDs and include missing `transcriptions` table.
+
+**End log:**
+
+- **Timestamp:** 2025-12-15 08:55
+- **Changed:** Updated `supabase/migrations/20251215000000_init.sql` with correct types and tables.
+- **Status:** DONE
+
+---
+
+## Task T-0008: Refactor Visualizer and Config
+
+**Status:** DONE
+
+**Start log:**
+
+- **Timestamp:** 2025-12-15 08:58
+- **Plan:** Refactor App.tsx audio visualizer to direct DOM manipulation (fix inline style lint) and update launch.json types.
+
+**End log:**
+
+- **Timestamp:** 2025-12-15 09:00
+- **Changed:** Using `ref` for visualizer animation. Updated `pwa-msedge` to `msedge` in launch.json.
+- **Status:** DONE

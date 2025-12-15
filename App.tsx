@@ -297,6 +297,8 @@ const App: React.FC = () => {
   const mediaStreamRef = useRef<MediaStream | null>(null); 
   const screenStreamRef = useRef<MediaStream | null>(null); 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioIndicatorRef = useRef<HTMLDivElement>(null);
+  const lastAudioUpdateRef = useRef<number>(0);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   // Audio Visualization Refs
@@ -559,7 +561,19 @@ const App: React.FC = () => {
               sum += dataArray[i];
           }
           const avg = sum / dataArray.length;
-          setAudioLevel(avg); 
+          
+          // Direct DOM update for performance and to avoid inline style lint in JSX
+          if (audioIndicatorRef.current) {
+              audioIndicatorRef.current.style.height = `${Math.min(100, avg)}%`;
+          }
+
+          // Throttle state update to 100ms to reduce re-renders
+          const now = Date.now();
+          if (now - lastAudioUpdateRef.current > 100) {
+               setAudioLevel(avg); 
+               lastAudioUpdateRef.current = now;
+          }
+
           animationFrameRef.current = requestAnimationFrame(update);
       };
       update();
@@ -967,9 +981,8 @@ const App: React.FC = () => {
                       <button onClick={() => setIsMicActive(!isMicActive)} className={`p-4 rounded-full border transition-all ${isMicActive ? 'bg-white text-black border-white' : 'bg-red-600 text-white border-red-600'}`}>{isMicActive ? <Mic size={24} /> : <MicOff size={24} />}</button>
                       <button onClick={() => setIsVideoActive(!isVideoActive)} className={`p-4 rounded-full border transition-all ${isVideoActive ? 'bg-white text-black border-white' : 'bg-red-600 text-white border-red-600'}`}>{isVideoActive ? <Video size={24} /> : <VideoOff size={24} />}</button>
                   </div>
-                  {/* eslint-disable-next-line react-dom/no-unsafe-target-blank, @typescript-eslint/ban-ts-comment */ }
                   {/* @ts-ignore - Dynamic style */}
-                  {isMicActive && ( <div className="absolute top-6 right-6 flex flex-col items-center space-y-1"><div className="w-2 h-16 bg-white/20 rounded-full overflow-hidden flex flex-col justify-end"><div className="w-full bg-green-500 transition-all duration-75" style={{ height: `${Math.min(100, audioLevel)}%` }}></div></div><Mic size={12} className="text-white/50" /></div> )}
+                  {isMicActive && ( <div className="absolute top-6 right-6 flex flex-col items-center space-y-1"><div className="w-2 h-16 bg-white/20 rounded-full overflow-hidden flex flex-col justify-end"><div ref={audioIndicatorRef} className="w-full bg-green-500 transition-all duration-75 h-0"></div></div><Mic size={12} className="text-white/50" /></div> )}
               </div>
               <div className="w-full md:w-96 bg-surface border-l border-white/10 p-6 flex flex-col space-y-6 overflow-y-auto">
                   <div><h2 className="text-xl font-display font-bold text-white mb-1">Ready to join?</h2><p className="text-xs text-secondary">{sessionInfo?.id}</p></div>
