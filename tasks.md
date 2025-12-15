@@ -304,3 +304,86 @@
 - **Timestamp:** 2025-12-15 09:00
 - **Changed:** Using `ref` for visualizer animation. Updated `pwa-msedge` to `msedge` in launch.json.
 - **Status:** DONE
+
+---
+
+## Task T-0009: Implement Live Translation Flow
+
+**Status:** IN-PROGRESS
+**Owner:** Miles
+**Related repo:** orbitv2
+**Branch:** main
+**Created:** 2025-12-15 18:45
+**Last updated:** 2025-12-15 18:45
+
+### START LOG (T-0009)
+
+**Timestamp:** 2025-12-15 18:45
+
+**Current behavior or state:**
+
+- Project has basic translation infrastructure but not fully integrated
+- `caption_segments` and `caption_translations` tables exist in schema
+- `useCaptions.ts` hook handles basic STT to database flow
+- Missing real-time translation listener for multi-participant flow
+- Gemini Live API not connected to translation pipeline
+- No speaker_id filtering to prevent audio feedback
+
+**Plan and scope for this task:**
+
+- Create/verify `transcripts` and `transcript_translations` tables match Live Orbits spec
+- Implement `useTranslationListener` hook for real-time translation
+- Integrate Web Speech API → Supabase → Gemini Live API pipeline
+- Implement anti-feedback mechanism (text-only prompts to Gemini)
+- Add speaker style preservation and locale-specific translation
+- Test multi-participant, multi-language scenarios
+
+**Files or modules expected to change:**
+
+- lib/supabaseClient.ts (add transcript functions)
+- hooks/useTranslationListener.ts (NEW)
+- hooks/useSTT.ts (add session/speaker tracking)
+- lib/gemini.ts (verify model configs)
+- components/TranslationPanel.tsx (enhance UI)
+- App.tsx (integrate translation flow)
+- supabase_schema.sql (verify/update schema)
+
+**Risks or things to watch out for:**
+
+- Audio feedback loops if Gemini's microphone picks up its own output
+- Ensure TEXT-only prompts to Gemini (critical anti-feedback measure)
+- Supabase Realtime channel management across multiple participants
+- Translation latency and quality balance
+- Proper speaker_id filtering to avoid self-translation
+
+### WORK CHECKLIST (T-0009)
+
+- [/] Code changes implemented according to the defined scope
+- [ ] No unrelated refactors or drive-by changes
+- [ ] Configuration and environment variables verified
+- [ ] Database migrations or scripts documented if they exist
+- [ ] Logs and error handling reviewed
+
+### END LOG (T-0009)
+
+**Timestamp:** (To be filled after completion)
+
+**Summary of what actually changed:**
+
+- (To be documented after implementation)
+
+**Files actually modified:**
+
+- (To be listed after implementation)
+
+**How it was tested:**
+
+- (To be documented after testing)
+
+**Test result:**
+
+- (PASS/FAIL to be determined)
+
+**Known limitations or follow-up tasks:**
+
+- (To be noted after implementation)
