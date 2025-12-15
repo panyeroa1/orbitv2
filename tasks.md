@@ -60,6 +60,7 @@ Test result:
 
 Known limitations or follow-up tasks:
 - None
+
 ------------------------------------------------------------
 STANDARD TASK BLOCK
 ------------------------------------------------------------
@@ -127,6 +128,7 @@ Test result:
 
 Known limitations or follow-up tasks:
 - None
+
 ------------------------------------------------------------
 STANDARD TASK BLOCK
 ------------------------------------------------------------
@@ -261,3 +263,39 @@ Test result:
 
 Known limitations or follow-up tasks:
 - Migration must be run manually by user.
+
+------------------------------------------------------------
+COMPACT MINI TASK FORMAT
+------------------------------------------------------------
+
+Task ID: T-0005
+Title: Update Supabase Credentials
+
+Start log:
+
+- Timestamp: 2025-12-15 08:43
+- Plan: Update .env.local with new Supabase URL and Key provided by user.
+
+End log:
+
+- Timestamp: 2025-12-15 08:44
+- Changed: Updated VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local.
+- Tests: Verified file content via command line.
+- Status: DONE
+
+------------------------------------------------------------
+COMPACT MINI TASK FORMAT
+------------------------------------------------------------
+
+Task ID: T-0006
+Title: Fix Lint and Inline Style Issues
+
+Start log:
+- Timestamp: 2025-12-15 08:45
+- Plan: Fix markdown formatting in tasks.md and replace inline styles in App.tsx with Tailwind utility classes.
+
+End log:
+- Timestamp: 2025-12-15 08:50
+- Changed: Replaced static `style={{ transform... }}` with Tailwind classes in App.tsx. Reformatted tasks.md spacing.
+- Tests: npm run build (PASSED).
+- Status: DONE

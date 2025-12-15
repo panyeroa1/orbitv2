@@ -953,7 +953,7 @@ const App: React.FC = () => {
       <div className="flex flex-col items-center justify-center h-full relative z-10 px-4">
           <div className="w-full max-w-5xl bg-surface border border-white/10 rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl">
               <div className="flex-1 bg-black relative min-h-[400px] flex items-center justify-center overflow-hidden group">
-                  {isVideoActive ? ( <video ref={previewVideoRef} className="w-full h-full object-cover" muted playsInline style={{ transform: 'scaleX(-1)' }} /> ) : ( <div className="text-white/20 font-display text-2xl">Camera Off</div> )}
+                  {isVideoActive ? ( <video ref={previewVideoRef} className="w-full h-full object-cover -scale-x-100" muted playsInline /> ) : ( <div className="text-white/20 font-display text-2xl">Camera Off</div> )}
                   
                   {/* Virtual Background Visual Indicator */}
                   {backgroundMode !== 'none' && (
@@ -1054,7 +1054,7 @@ const App: React.FC = () => {
       <div className="h-full w-full flex flex-col items-center justify-center relative z-10 bg-black/80 backdrop-blur-md">
           {/* Keep video stream alive in background context but hidden or blurred */}
           <div className="absolute inset-0 z-0 opacity-20">
-               {previewVideoRef.current && <video ref={el => { if(el && mediaStreamRef.current) el.srcObject = mediaStreamRef.current }} className="w-full h-full object-cover" muted playsInline autoPlay style={{ transform: 'scaleX(-1)' }} />}
+               {previewVideoRef.current && <video ref={el => { if(el && mediaStreamRef.current) el.srcObject = mediaStreamRef.current }} className="w-full h-full object-cover -scale-x-100" muted playsInline autoPlay />}
           </div>
           
           <div className="z-10 text-center space-y-6 max-w-md p-8 bg-surface/50 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl">
@@ -1153,7 +1153,7 @@ const App: React.FC = () => {
                   <div className="flex-1 relative bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center">
                       {pinnedParticipantId === 'user-1' ? (
                           <div className={`w-full h-full relative group ${isScreenSharing ? 'border-green-500/30 border-2' : ''}`}>
-                              <video ref={videoRef} className="w-full h-full object-contain bg-black" muted playsInline style={{ transform: isMirrored && !isScreenSharing ? 'scaleX(-1)' : 'none' }} />
+                              <video ref={videoRef} className={`w-full h-full object-contain bg-black ${isMirrored && !isScreenSharing ? '-scale-x-100' : ''}`} muted playsInline />
                               <div className="absolute bottom-6 left-6 bg-black/60 px-4 py-2 rounded-xl text-white font-medium backdrop-blur-md flex items-center space-x-2">
                                 {isScreenSharing ? <MonitorUp size={16} className="text-green-400" /> : null}<span>You {isScreenSharing ? '(Sharing Screen)' : '(Spotlight)'}</span>
                               </div>
@@ -1305,11 +1305,10 @@ const App: React.FC = () => {
                                     {p.id === 'user-1' ? (
                                         <video 
                                             ref={el => { if (el && mediaStreamRef.current) el.srcObject = mediaStreamRef.current }} 
-                                            className="w-full h-full object-cover" 
+                                            className={`w-full h-full object-cover ${isMirrored && !isScreenSharing ? '-scale-x-100' : ''}`}
                                             muted 
                                             playsInline 
                                             autoPlay
-                                            style={{ transform: isMirrored && !isScreenSharing ? 'scaleX(-1)' : 'none' }} 
                                         />
                                     ) : streams[p.id] ? (
                                         <video 
