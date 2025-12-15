@@ -319,7 +319,8 @@ const App: React.FC = () => {
   }, []);
 
   // WebRTC Hook
-  const userId = session?.user?.id || 'guest';
+  const [guestId] = useState(() => 'guest-' + Math.floor(Math.random() * 1000000).toString());
+  const userId = session?.user?.id || guestId;
   const userEmail = session?.user?.email || 'Guest';
   
   const handleControlSignal = (action: string, payload: any) => {
