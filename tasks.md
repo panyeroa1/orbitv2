@@ -681,3 +681,63 @@ Test result:
 
 Known limitations or follow-up tasks:
 - None
+
+------------------------------------------------------------
+STANDARD TASK BLOCK
+------------------------------------------------------------
+
+Task ID: T-0015
+Title: Create TRANSLATOR.md Documentation
+Status: DONE
+Owner: Miles
+Related repo: orbitv2
+Branch: main
+Created: 2025-12-16 23:05
+Last updated: 2025-12-16 23:05
+
+START LOG (fill this before you start coding)
+
+Timestamp: 2025-12-16 23:05
+Current behavior or state:
+- No dedicated documentation for the Gemini Live integration exists.
+- The logic is complex (WebSocket, Bidi streaming, Dual-channel) and needs explanation.
+
+Plan and scope for this task:
+- Create `TRANSLATOR.md` in the root directory.
+- Document the Architecture, Key Components, and Data Flow.
+- Explain the specific "Text for Metadata, Audio for Speech" protocol used.
+
+Files or modules expected to change:
+- TRANSLATOR.md (NEW)
+- tasks.md
+
+Risks or things to watch out for:
+- None.
+
+WORK CHECKLIST
+
+- [x] Code changes implemented according to the defined scope
+- [x] No unrelated refactors or drive-by changes
+- [x] Configuration and environment variables verified
+- [ ] Database migrations or scripts documented if they exist
+- [ ] Logs and error handling reviewed
+
+END LOG (fill this after you finish coding and testing)
+
+Timestamp: 2025-12-16 23:05
+Summary of what actually changed:
+- Created `TRANSLATOR.md` detailing the Gemini Live API architecture.
+- Documented the `useGeminiLiveAudio` hook and data flow.
+
+Files actually modified:
+- TRANSLATOR.md
+- tasks.md
+
+How it was tested:
+- N/A (Documentation only)
+
+Test result:
+- PASS
+
+Known limitations or follow-up tasks:
+- None
