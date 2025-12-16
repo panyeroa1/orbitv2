@@ -620,3 +620,64 @@ Test result:
 
 Known limitations or follow-up tasks:
 - (To be filled)
+
+------------------------------------------------------------
+STANDARD TASK BLOCK
+------------------------------------------------------------
+
+Task ID: T-0014
+Title: Fix Frontend UI Visibility (Orb & Captions)
+Status: DONE
+Owner: Miles
+Related repo: orbitv2
+Branch: main
+Created: 2025-12-16 22:15
+Last updated: 2025-12-16 22:30
+
+START LOG (fill this before you start coding)
+
+Timestamp: 2025-12-16 22:15
+Current behavior or state:
+- TranslationOrb is defined in code but NOT rendered in App.tsx.
+- useGeminiLiveAudio hook is configured but `onTranslationText` is missing, so translation text is dropped.
+- Feedback buttons are implemented in CaptionsOverlay (verified).
+
+Plan and scope for this task:
+- Add `{renderTranslationOrb()}` to `renderActive` in App.tsx.
+- Add `onTranslationText` handler to `useGeminiLiveAudio` hook in App.tsx to pipe text to `addInterimCaption`.
+- Verify code compiles.
+
+Files or modules expected to change:
+- App.tsx
+
+Risks or things to watch out for:
+- Ensure z-index of Orb doesn't block other controls (it is z-50, should be fine).
+- Ensure interim captions don't flood the UI (CaptionsOverlay handles this).
+
+WORK CHECKLIST
+
+- [x] Code changes implemented according to the defined scope
+- [x] No unrelated refactors or drive-by changes
+- [x] Configuration and environment variables verified
+- [ ] Database migrations or scripts documented if they exist
+- [ ] Logs and error handling reviewed
+
+END LOG (fill this after you finish coding and testing)
+
+Timestamp: 2025-12-16 22:30
+Summary of what actually changed:
+- Added `renderTranslationOrb()` call in `App.tsx` main render loop.
+- Added `onTranslationText` handler to `useGeminiLiveAudio` config in `App.tsx` to pass text to captions system.
+
+Files actually modified:
+- App.tsx
+
+How it was tested:
+- npm run build (implicit via tsc --noEmit check) -> PASS.
+- Manual logic verification of component placement.
+
+Test result:
+- PASS
+
+Known limitations or follow-up tasks:
+- None

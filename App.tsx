@@ -425,7 +425,10 @@ const App: React.FC = () => {
         console.log('[App] Received Gemini audio stream, routing to WebRTC');
         setGeminiAudioStream(stream);
     },
-
+    onTranslationText: (text) => {
+        // Display translation in captions
+        addInterimCaption('gemini-translator', 'AI Translator', text);
+    },
     onStateChange: (state) => setTranslationState(state),
     glossary,
     context: translationContext
@@ -1337,6 +1340,9 @@ const App: React.FC = () => {
                 <button title="End Meeting" onClick={() => { sttRef.current?.stop(); setAppState(AppState.LANDING); }} className="bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl transition-colors"><PhoneOff size={20} /></button>
              </div>
           </div>
+          
+          {/* Translation Orb */}
+          {renderTranslationOrb()}
           
           {showCaptions && (
              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-full max-w-4xl z-20 pointer-events-none px-4">
