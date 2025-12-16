@@ -406,3 +406,70 @@
 - Translation status UI indicator not yet visible (console logging only)
 - Network resilience (retry logic) not implemented
 - Speaker style detection currently hardcoded to "neutral, clear"
+
+------------------------------------------------------------
+STANDARD TASK BLOCK
+------------------------------------------------------------
+
+Task ID: T-0011
+Title: Priority 1 Enhancements (Status, Feedback, Resilience)
+Status: TODO
+Owner: Miles
+Related repo: orbitv2
+Branch: main
+Created: 2025-12-16 11:10
+Last updated: 2025-12-16 11:10
+
+START LOG (fill this before you start coding)
+
+Timestamp: 2025-12-16 11:10
+Current behavior or state:
+- TranslationOrb shows simple states (idle, listening, translating)
+- No visual text status (e.g., "Connecting...", "Error")
+- No mechanism for user to rate translation quality
+- No automatic retry if Gemini WebSocket disconnects
+- No handling of network drops
+
+Plan and scope for this task:
+- Implement detailed status text indicator in UI (alongside Orb)
+- Add Thumbs Up/Down feedback buttons for recent translations
+- Implement exponential backoff retry logic in useGeminiLiveAudio
+- Add network disconnection listeners and auto-reconnect
+
+Files or modules expected to change:
+- components/TranslationOrb.tsx (Add text status)
+- components/FeedbackButtons.tsx (NEW)
+- hooks/useGeminiLiveAudio.ts (Add retry/network logic)
+- App.tsx (Integrate feedback UI)
+- lib/supabaseClient.ts (Add feedback logging)
+
+Risks or things to watch out for:
+- Retry loops causing API rate limits
+- UI clutter with too many indicators
+- Database schema might need update for feedback logging
+
+WORK CHECKLIST
+
+- [ ] Design and implement FeedbackButtons component
+- [ ] Add status text prop to TranslationOrb and display it
+- [ ] Implement retry logic in useGeminiLiveAudio
+- [ ] Implement network status handling
+- [ ] Log feedback to Supabase
+
+END LOG (fill this after you finish coding and testing)
+
+Timestamp: (To be filled)
+Summary of what actually changed:
+- (To be filled)
+
+Files actually modified:
+- (To be filled)
+
+How it was tested:
+- (To be filled)
+
+Test result:
+- (To be filled)
+
+Known limitations or follow-up tasks:
+- (To be filled)

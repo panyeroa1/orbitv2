@@ -24,8 +24,10 @@ export const TranslationOrb: React.FC<TranslationOrbProps> = ({
   size = 150
 }) => {
   const getStatusLabel = () => {
+    // 1. Explicit label overrides all (used for 'Reconnecting...', 'Error', etc.)
     if (label) return label;
     
+    // 2. Default state labels
     switch (state) {
       case 'listening':
         return 'Listening...';
@@ -38,6 +40,9 @@ export const TranslationOrb: React.FC<TranslationOrbProps> = ({
   };
 
   const getStatusDetail = () => {
+    // If there's an explicit label (like "Reconnecting..."), we might want to hide the detail or show a generic message
+    if (label) return ''; 
+
     switch (state) {
       case 'listening':
         return 'Speak now';
@@ -73,3 +78,4 @@ export const TranslationOrb: React.FC<TranslationOrbProps> = ({
 };
 
 export default TranslationOrb;
+
