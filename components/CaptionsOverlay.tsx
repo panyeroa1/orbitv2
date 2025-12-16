@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { CaptionSegment, InterimCaption, CaptionSettings } from '../types';
+import FeedbackButtons from './FeedbackButtons';
+import { logTranslationFeedback } from '../lib/supabaseClient';
 
 interface CaptionsOverlayProps {
   segments: CaptionSegment[];
@@ -147,7 +149,7 @@ const CaptionsOverlay: React.FC<CaptionsOverlayProps> = ({
           {displayCaptions.map((caption, index) => (
             <div
               key={caption.id}
-              className={`transition-all duration-300 ${
+              className={`transition-all duration-300 group ${
                 caption.isInterim ? 'opacity-70' : 'opacity-100'
               } ${getFontSize()} animate-in fade-in slide-in-from-bottom-2 duration-200`}
               style={{
@@ -163,6 +165,14 @@ const CaptionsOverlay: React.FC<CaptionsOverlayProps> = ({
               <span className={caption.isInterim ? 'text-white/70 italic' : 'text-white'}>
                 {caption.text}
               </span>
+              
+              {!caption.isInterim && !caption.id.startsWith('interim-') && (
+                <FeedbackButtons 
+                   className="inline-flex ml-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                   segmentId={caption.id}
+                   onFeedback={(score) => logTranslationFeedback(caption.id, score)}
+                />
+              )}
             </div>
           ))}
         </div>

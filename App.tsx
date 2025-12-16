@@ -5,7 +5,6 @@ import { AppState, Segment, TranslationConfig, MeetingSession, MediaDevice, Part
 import { STTService } from './lib/sttService';
 import { AudioQueue } from './lib/audioQueue';
 import { ai, MODEL_TRANSLATOR, MODEL_TTS } from './lib/gemini';
-import { Modality } from '@google/genai';
 import { base64ToUint8Array } from './lib/audioUtils';
 import { getAvailableDevices, getStream } from './lib/deviceUtils';
 
@@ -222,6 +221,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarView, setSidebarView] = useState<'participants' | 'chat' | 'secretary'>('participants');
   const [participantsViewMode, setParticipantsViewMode] = useState<'list' | 'grid'>('list');
+  const [setupView, setSetupView] = useState<'HOST' | 'JOIN' | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [interimTranscript, setInterimTranscript] = useState('');
@@ -402,7 +402,8 @@ const App: React.FC = () => {
   const [translationState, setTranslationState] = useState<'idle' | 'listening' | 'translating'>('idle');
 
   // --- Gemini Live Audio Hook ---
-  const { start: startGemini, stop: stopGemini, error: geminiError } = useGeminiLiveAudio({
+  // --- Gemini Live Audio Hook ---
+  const { start: startGemini, stop: stopGemini, error: geminiError, connectionState } = useGeminiLiveAudio({
     sessionId: sessionInfo?.id || '',
     sourceLang: 'en',
     targetLang: captionSettings.targetLanguage || 'es',
@@ -444,9 +445,16 @@ const App: React.FC = () => {
   const renderTranslationOrb = () => {
       if (!captionSettings.incomingTranslatedVoiceEnabled || appState !== AppState.ACTIVE) return null;
       
+      let statusText: string | undefined = undefined;
+      // Override status text based on connection state
+      if (connectionState === 'reconnecting') statusText = 'Reconnecting...';
+      else if (connectionState === 'connecting') statusText = 'Connecting...';
+      else if (geminiError) statusText = 'Error';
+      else if (connectionState === 'disconnected') statusText = 'Disconnected';
+
       return (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
-             <TranslationOrb state={translationState} />
+             <TranslationOrb state={translationState} label={statusText} />
           </div>
       );
   };

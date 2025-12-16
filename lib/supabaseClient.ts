@@ -97,3 +97,19 @@ export function subscribeToTranslations(
     )
     .subscribe();
 }
+
+/**
+ * Log user feedback for a translation
+ */
+export async function logTranslationFeedback(segmentId: string, score: 'up' | 'down') {
+  const { error } = await supabase
+    .from('translation_feedback')
+    .insert({
+      segment_id: segmentId,
+      score: score
+    });
+    
+  if (error) {
+      console.error('Error logging feedback:', error);
+  }
+}

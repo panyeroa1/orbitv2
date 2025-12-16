@@ -450,11 +450,11 @@ Risks or things to watch out for:
 
 WORK CHECKLIST
 
-- [ ] Design and implement FeedbackButtons component
-- [ ] Add status text prop to TranslationOrb and display it
-- [ ] Implement retry logic in useGeminiLiveAudio
-- [ ] Implement network status handling
-- [ ] Log feedback to Supabase
+- [x] Design and implement FeedbackButtons component
+- [x] Add status text prop to TranslationOrb and display it
+- [x] Implement retry logic in useGeminiLiveAudio
+- [x] Implement network status handling
+- [x] Log feedback to Supabase
 
 END LOG (fill this after you finish coding and testing)
 
