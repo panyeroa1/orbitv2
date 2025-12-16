@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ai, MODEL_LIVE } from '../lib/gemini';
 
+// WebSocket Endpoint for Gemini Live API
+const GEMINI_WS_URL = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
+
 export interface UseGeminiLiveAudioProps {
   /** Session ID for tracking */
   sessionId: string;
@@ -58,9 +61,10 @@ export function useGeminiLiveAudio({
   const [lastTranslation, setLastTranslation] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   
-  const geminiSessionRef = useRef<any>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -79,27 +83,79 @@ export function useGeminiLiveAudio({
     return `You are a real-time audio translator for a video call.
 
 CRITICAL INSTRUCTIONS:
-1. Listen to the speaker's voice in ${sourceLang}
-2. Translate naturally to ${targetLang}
-3. Speak the translation with natural intonation and emotion
-4. Preserve the speaker's tone, pace, and intent
-5. Use native idioms appropriate for ${targetLang}
-6. Maintain accuracy for names, numbers, and key terms
-7. Output ONLY the translated speech - no commentary
+1. Listen to the speaker's voice.
+2. Automatically DETECT the source language.
+3. Translate naturally to ${targetLang}.
+4. Speak the translation with natural intonation and emotion.
+5. Preserve the speaker's tone, pace, and intent.
+6. Use native idioms appropriate for ${targetLang}.
+7. Output ONLY the translated speech - no commentary.
+8. If you are uncertain about the language, assume ${sourceLang}.
 
-When you hear speech, immediately translate and speak the result.
-Keep translations concise and natural.`;
+When you hear speech, immediately translate and speak the result.`;
   }, [sourceLang, targetLang]);
 
   /**
-   * Play audio chunk to the destination stream
+   * Initialize Audio Context
    */
-  const playAudioChunk = async (base64Data: string) => {
-      // ... implementation
+  const initAudioContext = async () => {
+    if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({
+            sampleRate: 16000 // Set to 16kHz to match Gemini Input requirement
+        });
+    }
+
+    // Output Destination (for WebRTC routing)
+    if (!audioDestinationRef.current && audioContextRef.current) {
+        audioDestinationRef.current = audioContextRef.current.createMediaStreamDestination();
+        onAudioOutput?.(audioDestinationRef.current.stream);
+    }
   };
 
   /**
-   * Connect to Gemini Live
+   * Play audio chunk from Gemini
+   */
+  const playAudioChunk = async (base64Array: string) => {
+      if (!audioContextRef.current || !audioDestinationRef.current) return;
+
+      try {
+          // Decode Base64
+          const binaryString = atob(base64Array);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          // PCM 16-bit to Float32
+          const int16 = new Int16Array(bytes.buffer);
+          const float32 = new Float32Array(int16.length);
+          for(let i=0; i<int16.length; i++) {
+              float32[i] = int16[i] / 32768.0;
+          }
+
+          // Create Buffer (Assuming 24kHz output from Gemini Live)
+          const buffer = audioContextRef.current.createBuffer(1, float32.length, 24000);
+          buffer.getChannelData(0).set(float32);
+
+          const source = audioContextRef.current.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioDestinationRef.current);
+          source.start();
+          
+          updateState('translating');
+          // Reset to listening after playback (approximate)
+          source.onended = () => {
+             updateState('listening');
+          };
+
+      } catch (e) {
+          console.error('[GeminiLive] Error playing audio chunk:', e);
+      }
+  };
+
+  /**
+   * Connect to Gemini Live WebSocket
    */
   const connect = useCallback(async (isRetry = false) => {
       try {
@@ -111,61 +167,161 @@ Keep translations concise and natural.`;
         setConnectionState(isRetry ? 'reconnecting' : 'connecting');
         updateState('idle');
 
-        // ... (audio context and mic setup)
-        if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
-        
-        if (!audioDestinationRef.current) {
-            audioDestinationRef.current = audioContextRef.current.createMediaStreamDestination();
-            onAudioOutput?.(audioDestinationRef.current.stream);
-        }
+        await initAudioContext();
 
+        // 1. Get Microphone Stream
         const micStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+            audio: { 
+                echoCancellation: true, 
+                noiseSuppression: true, 
+                autoGainControl: true,
+                sampleRate: 16000 // Request 16kHz for input
+            } 
         });
         micStreamRef.current = micStream;
 
-        const model = ai.getGenerativeModel({
-          model: MODEL_LIVE,
-          systemInstruction: getSystemInstruction(),
-          generationConfig: {
-            responseModalities: ['AUDIO'], 
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: { voiceName: voice }
-              }
-            }
-          }
-        });
+        // 2. Setup WebSocket
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        const ws = new WebSocket(`${GEMINI_WS_URL}?key=${apiKey}`);
+        wsRef.current = ws;
 
-        const session = await model.startChat({
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
-        });
+        ws.onopen = () => {
+            console.log('[GeminiLive] WebSocket Connected');
+            setConnectionState('connected');
+            setIsActive(true);
+            setRetryCount(0);
 
-        geminiSessionRef.current = session;
-        setConnectionState('connected');
-        setIsActive(true);
-        setRetryCount(0);
+            // Send Setup Message
+            const setupMessage = {
+                setup: {
+                    model: `models/${MODEL_LIVE}`,
+                    generation_config: {
+                        response_modalities: ["AUDIO"],
+                        speech_config: {
+                            voice_config: {
+                                prebuilt_voice_config: {
+                                    voice_name: voice
+                                }
+                            }
+                        }
+                    },
+                    system_instruction: {
+                         parts: [{ text: getSystemInstruction() }]
+                    }
+                }
+            };
+            ws.send(JSON.stringify(setupMessage));
+            
+            // Start Audio Streaming
+            startAudioStreaming(micStream);
+        };
 
-        console.log('[GeminiLive] Session started:', sessionId);
-        processAudioStream(micStream, session);
+        ws.onmessage = async (event) => {
+             const data = JSON.parse(event.data);
+             
+             // Handle Audio Output
+             if (data.serverContent?.modelTurn?.parts) {
+                 for (const part of data.serverContent.modelTurn.parts) {
+                     if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
+                         playAudioChunk(part.inlineData.data);
+                     }
+                     if (part.text) {
+                         setLastTranslation(part.text);
+                         onTranslationText?.(part.text);
+                     }
+                 }
+             }
+        };
+
+        ws.onclose = () => {
+             console.log('[GeminiLive] WebSocket Closed');
+             if (isActive) {
+                 scheduleRetry();
+             } else {
+                 setConnectionState('disconnected');
+             }
+        };
+
+        ws.onerror = (e) => {
+             console.error('[GeminiLive] WebSocket Error:', e);
+             setError('WebSocket connection error');
+             ws.close();
+        };
 
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to start session';
-        console.error('[GeminiLive] Connection error:', err);
+        const errorMsg = err instanceof Error ? err.message : 'Failed to connect';
+        console.error('[GeminiLive] Setup error:', err);
         setError(errorMsg);
-        
-        // Trigger retry via effect or state, not direct call to avoid dependency cycle
-        // Using a direct recursive call here is tricky with useCallback
-        // So we'll schedule it
         scheduleRetry();
       }
-  }, [sessionId, voice, getSystemInstruction, updateState, onAudioOutput]); // Removing scheduleRetry from deps
+  }, [sessionId, voice, getSystemInstruction, updateState, onAudioOutput]);
 
-  // Ref to hold the connect function to break cycle
   const connectRef = useRef(connect);
   useEffect(() => { connectRef.current = connect; }, [connect]);
+
+  /**
+   * Start streaming microphone audio to WebSocket
+   */
+  const startAudioStreaming = (stream: MediaStream) => {
+      if (!audioContextRef.current || !wsRef.current) return;
+
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      // Downsample to 16kHz for Gemini
+      const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+      processorRef.current = processor;
+
+      processor.onaudioprocess = (e) => {
+          if (wsRef.current?.readyState !== WebSocket.OPEN) return;
+
+          const inputData = e.inputBuffer.getChannelData(0);
+          
+          // Downsample Logic (Simple Decimation if context is 24k/48k -> 16k)
+          // Ideally use a proper resampler, but for now assuming 16k requested or simple skip
+          // Actually, we must send PCM 16-bit, Little Endian, 16kHz
+          
+          const pcm16 = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+              let s = Math.max(-1, Math.min(1, inputData[i]));
+              pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          }
+
+          // Convert to Base64
+          const buffer = new ArrayBuffer(pcm16.byteLength);
+          const view = new Uint8Array(buffer);
+          // Copy int16 into buffer (Little Endian by default on most systems? need to ensure)
+          // JS TypedArrays use platform endianness. sending raw bytes over WS usually expects standard.
+          // Gemini expects: "linear-16" aka PCM 16LE.
+          const dataView = new DataView(buffer);
+          for(let i=0; i < pcm16.length; i++){
+               dataView.setInt16(i*2, pcm16[i], true); // true = Little Endian
+          }
+
+          // Encode Base64
+          // Using a faster method than btoa iteration if possible, but for chunks btoa is fine
+          let binary = '';
+          const bytes = new Uint8Array(buffer);
+          const len = bytes.byteLength;
+          for (let i = 0; i < len; i++) {
+              binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+
+          // Send RealtimeInput
+          const msg = {
+              realtime_input: {
+                  media_chunks: [{
+                      mime_type: "audio/pcm;rate=16000",
+                      data: base64
+                  }]
+              }
+          };
+          wsRef.current.send(JSON.stringify(msg));
+          updateState('listening');
+      };
+
+      source.connect(processor);
+      processor.connect(audioContextRef.current.destination);
+  };
 
   /**
    * Exponential Backoff Retry Strategy
@@ -200,46 +356,6 @@ Keep translations concise and natural.`;
       connect(false);
   }, [connect]);
 
-
-  /**
-   * Process microphone audio stream
-   */
-  const processAudioStream = useCallback(async (stream: MediaStream, session: any) => {
-    // ... implementation
-    console.log('[GeminiLive] Processing audio stream...');
-    const simulateCycle = () => {
-      if (!geminiSessionRef.current) return;
-      updateState('listening');
-      setTimeout(() => {
-        if (!geminiSessionRef.current) return;
-        updateState('translating');
-        setTimeout(() => {
-          if (!geminiSessionRef.current) return;
-          const mockTranslation = 'Translation audio output';
-          setLastTranslation(mockTranslation);
-          onTranslationText?.(mockTranslation);
-          
-           if (audioContextRef.current && audioDestinationRef.current) {
-             try {
-               const osc = audioContextRef.current.createOscillator();
-               osc.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
-               osc.frequency.exponentialRampToValueAtTime(880, audioContextRef.current.currentTime + 0.1);
-               const gain = audioContextRef.current.createGain();
-               gain.gain.value = 0.1;
-               osc.connect(gain);
-               gain.connect(audioDestinationRef.current);
-               osc.start();
-               osc.stop(audioContextRef.current.currentTime + 0.5);
-             } catch(e) { console.error(e); }
-          }
-          updateState('listening');
-          simulateCycle();
-        }, 2000);
-      }, 3000);
-    };
-    simulateCycle();
-  }, [updateState, onTranslationText]);
-
   /**
    * Stop Gemini Live session
    */
@@ -251,6 +367,16 @@ Keep translations concise and natural.`;
         retryTimeoutRef.current = null;
     }
 
+    if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+    }
+
+    if (processorRef.current) {
+        processorRef.current.disconnect();
+        processorRef.current = null;
+    }
+
     if (micStreamRef.current) {
       micStreamRef.current.getTracks().forEach(track => track.stop());
       micStreamRef.current = null;
@@ -259,10 +385,6 @@ Keep translations concise and natural.`;
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
-    }
-    
-    if (geminiSessionRef.current) {
-      geminiSessionRef.current = null;
     }
     
     setIsActive(false);
@@ -292,7 +414,7 @@ Keep translations concise and natural.`;
 
   return {
     state,
-    connectionState, // NEW
+    connectionState,
     isActive,
     error,
     start,

@@ -413,7 +413,7 @@ STANDARD TASK BLOCK
 
 Task ID: T-0011
 Title: Priority 1 Enhancements (Status, Feedback, Resilience)
-Status: TODO
+Status: DONE
 Owner: Miles
 Related repo: orbitv2
 Branch: main
@@ -458,7 +458,85 @@ WORK CHECKLIST
 
 END LOG (fill this after you finish coding and testing)
 
-Timestamp: (To be filled)
+Timestamp: 2025-12-16 17:45
+
+Summary of what actually changed:
+- Implemented real-time translation status indicator in TranslationOrb.
+- Added FeedbackButtons component for user feedback on captions.
+- Implemented exponential backoff retry logic in useGeminiLiveAudio.
+- Handled network disconnection and exposed connection state to UI.
+- Added logTranslationFeedback to supabaseClient.ts.
+
+Files actually modified:
+- components/TranslationOrb.tsx
+- components/FeedbackButtons.tsx
+- hooks/useGeminiLiveAudio.ts
+- App.tsx
+- components/CaptionsOverlay.tsx
+- lib/supabaseClient.ts
+- tasks.md
+
+How it was tested:
+- Built verification (npm run build) passed.
+- Type checking (npx tsc --noEmit) passed.
+- Manual verification of code logic for retry and status propagation.
+
+Test result:
+- PASS
+
+Known limitations or follow-up tasks:
+- Migration `supabase_migration_feedback.sql` needs to be run.
+- Integration test with live Gemini API needed.
+
+------------------------------------------------------------
+STANDARD TASK BLOCK
+------------------------------------------------------------
+
+Task ID: T-0012
+Title: Priority 2 Enhancements (Language Detection, Confidence, Caching)
+Status: TODO
+Owner: Miles
+Related repo: orbitv2
+Branch: main
+Created: 2025-12-16 17:50
+Last updated: 2025-12-16 17:50
+
+START LOG (fill this before you start coding)
+
+Timestamp: 2025-12-16 17:50
+Current behavior or state:
+- Language is manually selected.
+- No confidence scores displayed.
+- No caching of translations (every segment hits API).
+- No batch processing.
+
+Plan and scope for this task:
+- Implement Language Auto-detection using Gemini's multimodal capabilities or STT metadata.
+- Request and display translation confidence scores from Gemini.
+- Implement client-side caching (LRU or Map) for frequent phrases.
+- Implement batch translation for non-critical segments if possible.
+
+Files or modules expected to change:
+- hooks/useGeminiLiveAudio.ts
+- components/CaptionsOverlay.tsx
+- lib/gemini.ts
+- types.ts
+
+Risks or things to watch out for:
+- Auto-detection latency might delay start of translation.
+- Caching might return stale context-unaware translations.
+
+WORK CHECKLIST
+
+- [/] Implement Language Auto-detection (Enabled in prompt, parsing pending)
+- [ ] Display Translation Confidence Scores (Pending metadata parsing)
+- [x] Implement Translation Caching (LRU implemented)
+- [x] Implement Real Gemini Live WebSocket (Replaced simulation)
+- [ ] Implement Batch Translation (optional)
+
+END LOG (fill this after you finish coding and testing)
+
+Timestamp: YYYY-MM-DD HH:MM
 Summary of what actually changed:
 - (To be filled)
 

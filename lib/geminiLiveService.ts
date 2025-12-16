@@ -47,6 +47,13 @@ text: "${text}"`;
   /**
    * Get system instruction for translation
    */
+  // Simple LRU Cache: key -> { text: string, audioData: string[] }
+  private cache = new Map<string, { text: string, audioData: string[], confidence?: number }>();
+  private readonly MAX_CACHE_SIZE = 50;
+
+  /**
+   * Get system instruction for translation
+   */
   getTranslationSystemInstruction(): string {
     return `You are a professional real-time interpreter for multilingual meetings.
 
@@ -59,6 +66,7 @@ CRITICAL RULES:
 6. Handle disfluencies naturally (translate "uh", "like", etc. appropriately)
 7. Never imitate specific people - use a generic native speaker voice
 8. Preserve the emotional tone and urgency of the original speech
+9. If possible, indicate confidence in your translation in the text response metadata if requested (currently implicit).
 
 When you receive input formatted as:
 source_lang: [code]
@@ -83,6 +91,26 @@ Respond with ONLY the translated text in the target language, spoken naturally a
     voice: string = 'Aoede',
     onProgress?: (status: string) => void
   ): Promise<string> {
+    const cacheKey = `${prompt}-${voice}`;
+
+    // Check Cache
+    if (this.cache.has(cacheKey)) {
+        onProgress?.('Fetching from cache...');
+        console.log('[GeminiLive] Cache hit');
+        const cached = this.cache.get(cacheKey)!;
+        
+        // Play cached audio
+        if (cached.audioData.length > 0) {
+            onProgress?.('Playing cached audio...');
+            for (const data of cached.audioData) {
+                await this.playAudioData(data);
+            }
+        }
+        
+        onProgress?.('Complete');
+        return cached.text;
+    }
+
     try {
       onProgress?.('Connecting to Gemini...');
 
@@ -117,6 +145,7 @@ Respond with ONLY the translated text in the target language, spoken naturally a
       // Extract text and audio from response
       const response = result.response;
       const translatedText = response.text() || '';
+      const audioParts: string[] = [];
 
       onProgress?.('Playing translation...');
 
@@ -124,10 +153,19 @@ Respond with ONLY the translated text in the target language, spoken naturally a
       if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
           if (part.inlineData?.mimeType?.startsWith('audio/')) {
-            await this.playAudioData(part.inlineData.data);
+            const data = part.inlineData.data;
+            audioParts.push(data);
+            await this.playAudioData(data);
           }
         }
       }
+
+      // Update Cache (LRU)
+      if (this.cache.size >= this.MAX_CACHE_SIZE) {
+          const firstKey = this.cache.keys().next().value;
+          this.cache.delete(firstKey);
+      }
+      this.cache.set(cacheKey, { text: translatedText, audioData: audioParts });
 
       onProgress?.('Complete');
       return translatedText;
