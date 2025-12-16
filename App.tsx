@@ -13,6 +13,10 @@ import { supabase } from './lib/supabaseClient';
 import { useWebRTC } from './hooks/useWebRTC';
 import { useCaptions } from './hooks/useCaptions';
 import { useSTT } from './hooks/useSTT';
+import { useTranslationListener } from './hooks/useTranslationListener';
+import { useGeminiLiveAudio } from './hooks/useGeminiLiveAudio';
+
+import TranslationOrb from './components/TranslationOrb';
 
 // Components
 import OrbitVisualizer from './components/OrbitVisualizer';
@@ -355,14 +359,7 @@ const App: React.FC = () => {
       }
   };
 
-  const { remoteParticipants, streams, notifications, chatMessages, sendMessage, sendControlSignal, joinRequests, resolveJoinRequest } = useWebRTC({
-    sessionId: sessionInfo?.id || '',
-    userId: userId,
-    userName: sessionInfo?.isHost ? `${userEmail} (Host)` : userEmail,
-    localStream: isScreenSharing ? screenStreamRef.current : mediaStreamRef.current, // Pass current active video stream
-    isHost: !!sessionInfo?.isHost,
-    onControlSignal: handleControlSignal
-  });
+
 
   // --- Captions Integration ---
   const { 
@@ -391,8 +388,68 @@ const App: React.FC = () => {
         handleSTTResult(text, true);
     },
     language: config.sourceLang,
-    continuous: true
+    continuous: true,
+    // NEW: Enable auto-save to database for translation flow
+    sessionId: sessionInfo?.id,
+    speakerId: userId,
+    speakerName: userEmail,
+    autoSaveToDb: captionSettings.incomingTranslatedVoiceEnabled // Enable when translation is active
   });
+
+  // --- Audio Routing & Translation State ---
+  // --- Audio Routing & Translation State ---
+  const [geminiAudioStream, setGeminiAudioStream] = useState<MediaStream | null>(null);
+  const [translationState, setTranslationState] = useState<'idle' | 'listening' | 'translating'>('idle');
+
+  // --- Gemini Live Audio Hook ---
+  const { start: startGemini, stop: stopGemini, error: geminiError } = useGeminiLiveAudio({
+    sessionId: sessionInfo?.id || '',
+    sourceLang: 'en',
+    targetLang: captionSettings.targetLanguage || 'es',
+    voice: meetingSettings.voice,
+    enabled: captionSettings.incomingTranslatedVoiceEnabled && appState === AppState.ACTIVE,
+    onAudioOutput: (stream) => {
+        console.log('[App] Received Gemini audio stream, routing to WebRTC');
+        setGeminiAudioStream(stream);
+    },
+    onStateChange: (state) => setTranslationState(state)
+  });
+
+  // --- WebRTC Hook ---
+  const {
+    remoteParticipants,
+    streams,
+    notifications,
+    chatMessages,
+    sendMessage,
+    sendControlSignal,
+    joinRequests,
+    resolveJoinRequest
+  } = useWebRTC({
+    sessionId: sessionInfo?.id || '',
+    userId,
+    userName: userEmail || 'Guest',
+    // CRITICAL Routing: Send Gemini Audio if enabled, otherwise regular Mic
+    localStream: captionSettings.incomingTranslatedVoiceEnabled && geminiAudioStream 
+        ? geminiAudioStream 
+        : (isScreenSharing ? screenStreamRef.current : mediaStreamRef.current),
+    isHost: setupView === 'HOST',
+    onControlSignal: (action, payload) => {
+       // Custom signal handling if needed
+    }
+  });
+
+  // --- Translation Orb Visualizer ---
+  // Replaces the standard controls or overlays when connected
+  const renderTranslationOrb = () => {
+      if (!captionSettings.incomingTranslatedVoiceEnabled || appState !== AppState.ACTIVE) return null;
+      
+      return (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+             <TranslationOrb state={translationState} />
+          </div>
+      );
+  };
 
   // --- Effects ---
 

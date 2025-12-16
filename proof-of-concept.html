@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Orbits - Audio Translation POC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00f3ff 0%, #9d4edd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #a0a0b0;
+            margin-bottom: 3rem;
+        }
+
+        /* Orb Visualizer */
+        .orb-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 2rem;
+        }
+
+        .orb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #00f3ff, #9d4edd);
+            box-shadow: 0 0 60px rgba(0, 243, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .orb.listening {
+            animation: pulse 2s ease-in-out infinite;
+            background: radial-gradient(circle at 30% 30%, #00f3ff, #00b4d8);
+        }
+
+        .orb.translating {
+            animation: spin 3s linear infinite, glow 1.5s ease-in-out infinite;
+            background: radial-gradient(circle at 30% 30%, #9d4edd, #e0aaff);
+        }
+
+        .orb.idle {
+            opacity: 0.5;
+            box-shadow: 0 0 20px rgba(157, 78, 221, 0.2);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 60px rgba(157, 78, 221, 0.4); }
+            50% { box-shadow: 0 0 100px rgba(157, 78, 221, 0.8); }
+        }
+
+        /* Status Label */
+        .status {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            min-height: 2rem;
+        }
+
+        .status.listening { color: #00f3ff; }
+        .status.translating { color: #9d4edd; }
+        .status.idle { color: #666; }
+
+        .status-detail {
+            font-size: 0.9rem;
+            color: #888;
+            min-height: 1.5rem;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 3rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        button.primary {
+            background: linear-gradient(135deg, #00f3ff 0%, #9d4edd 100%);
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
+        }
+
+        button.primary:hover {
+            box-shadow: 0 6px 30px rgba(0, 243, 255, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .language-selector label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* Info Panel */
+        .info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(0, 243, 255, 0.1);
+            border-left: 3px solid #00f3ff;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info strong {
+            color: #00f3ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Orbits</h1>
+        <p class="subtitle">Real-time Audio Translation</p>
+
+        <!-- Orb Visualizer -->
+        <div class="orb-container">
+            <div class="orb idle" id="orb"></div>
+        </div>
+
+        <!-- Status -->
+        <div class="status idle" id="status">Ready</div>
+        <div class="status-detail" id="statusDetail">Press Start to begin</div>
+
+        <!-- Language Selection -->
+        <div class="language-selector">
+            <label for="myLanguage">I speak:</label>
+            <select id="myLanguage">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="pt">Portuguese</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="hi">Hindi</option>
+                <option value="tr">Turkish</option>
+                <option value="ru">Russian</option>
+                <option value="ar">Arabic</option>
+                <option value="tl" selected>Tagalog</option>
+            </select>
+
+            <label for="targetLanguage" style="margin-top: 1rem;">Translate to:</label>
+            <select id="targetLanguage">
+                <option value="en" selected>English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="pt">Portuguese</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="hi">Hindi</option>
+                <option value="tr">Turkish</option>
+                <option value="ru">Russian</option>
+                <option value="ar">Arabic</option>
+                <option value="tl">Tagalog</option>
+            </select>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="primary" id="startBtn">Start Translation</button>
+            <button id="stopBtn" disabled>Stop</button>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info">
+            <strong>How it works:</strong><br>
+            • Your voice → Gemini Live listens and translates<br>
+            • Translation audio → sent to your conversation partner<br>
+            • You never hear your own translation (prevents echo)<br>
+            • Clean, natural translation quality
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const orb = document.getElementById('orb');
+        const status = document.getElementById('status');
+        const statusDetail = document.getElementById('statusDetail');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const myLanguageSelect = document.getElementById('myLanguage');
+        const targetLanguageSelect = document.getElementById('targetLanguage');
+
+        // State
+        let isActive = false;
+        let currentState = 'idle'; // idle, listening, translating
+
+        // Update UI based on state
+        function updateUI(newState, detail = '') {
+            currentState = newState;
+            
+            // Update orb
+            orb.className = `orb ${newState}`;
+            
+            // Update status
+            status.className = `status ${newState}`;
+            
+            switch(newState) {
+                case 'listening':
+                    status.textContent = 'Listening...';
+                    statusDetail.textContent = detail || 'Speak now';
+                    break;
+                case 'translating':
+                    status.textContent = 'Translating...';
+                    statusDetail.textContent = detail || 'Processing your speech';
+                    break;
+                case 'idle':
+                    status.textContent = 'Ready';
+                    statusDetail.textContent = detail || 'Press Start to begin';
+                    break;
+            }
+        }
+
+        // Start Translation Session
+        async function startTranslation() {
+            try {
+                isActive = true;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+                const myLang = myLanguageSelect.value;
+                const targetLang = targetLanguageSelect.value;
+
+                updateUI('listening', `Listening for ${myLang}...`);
+
+                // TODO: Initialize Gemini Live API
+                // TODO: Request microphone access
+                // TODO: Set up WebRTC connection
+                // TODO: Route audio streams
+
+                console.log(`Starting translation: ${myLang} → ${targetLang}`);
+
+                // Simulate state changes (for demo)
+                simulateTranslationFlow();
+
+            } catch (error) {
+                console.error('Error starting translation:', error);
+                updateUI('idle', 'Error: ' + error.message);
+                stopTranslation();
+            }
+        }
+
+        // Stop Translation Session
+        function stopTranslation() {
+            isActive = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+
+            updateUI('idle', 'Stopped');
+
+            // TODO: Clean up Gemini Live session
+            // TODO: Close WebRTC connections
+            // TODO: Release microphone
+        }
+
+        // Simulate translation flow (for demo purposes)
+        function simulateTranslationFlow() {
+            if (!isActive) return;
+
+            // Simulate listening → translating cycle
+            setTimeout(() => {
+                if (!isActive) return;
+                updateUI('translating', 'Generating translation...');
+
+                setTimeout(() => {
+                    if (!isActive) return;
+                    updateUI('listening', 'Ready for next phrase');
+                    simulateTranslationFlow();
+                }, 2000);
+            }, 3000);
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', startTranslation);
+        stopBtn.addEventListener('click', stopTranslation);
+
+        // Log initial state
+        console.log('Live Orbits Audio Translation POC - Ready');
+        console.log('This is a proof-of-concept demonstrating the UI/UX');
+        console.log('Integration with Gemini Live API and WebRTC coming next');
+    </script>
+</body>
+</html>

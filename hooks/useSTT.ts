@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { saveTranscript } from '../lib/supabaseClient';
 
 interface UseSTTProps {
   onInterimResult: (text: string) => void;
   onFinalResult: (text: string) => void;
   language?: string;
   continuous?: boolean;
+  /** Meeting/session ID for database tracking */
+  sessionId?: string;
+  /** Current speaker ID (peer ID or user ID) */
+  speakerId?: string;
+  /** Current speaker display name */
+  speakerName?: string;
+  /** Auto-save final transcripts to database */
+  autoSaveToDb?: boolean;
 }
 
 interface UseSTTReturn {
@@ -20,7 +29,11 @@ export function useSTT({
   onInterimResult,
   onFinalResult,
   language = 'en-US',
-  continuous = true
+  continuous = true,
+  sessionId,
+  speakerId,
+  speakerName,
+  autoSaveToDb = false
 }: UseSTTProps): UseSTTReturn {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
@@ -56,6 +69,22 @@ export function useSTT({
 
       if (lastResult.isFinal) {
         onFinalResult(transcript);
+        
+        // Auto-save to database if enabled
+        if (autoSaveToDb && sessionId && speakerId && speakerName) {
+          // Extract language code from locale (e.g., 'en-US' -> 'en')
+          const sourceLang = language.split('-')[0];
+          
+          saveTranscript(sessionId, speakerId, speakerName, transcript, sourceLang)
+            .then(segment => {
+              if (segment) {
+                console.log('[useSTT] Saved transcript to database:', segment.id);
+              }
+            })
+            .catch(err => {
+              console.error('[useSTT] Failed to save transcript:', err);
+            });
+        }
       } else {
         onInterimResult(transcript);
       }
@@ -105,7 +134,7 @@ export function useSTT({
       setError(null);
     };
 
-  }, [continuous, language, isListening, onFinalResult, onInterimResult]);
+  }, [continuous, language, isListening, onFinalResult, onInterimResult, sessionId, speakerId, speakerName, autoSaveToDb]);
 
   const startListening = useCallback(() => {
     if (!recognitionRef.current || !isSupported) {

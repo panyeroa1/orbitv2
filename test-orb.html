@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Orb Test - Live Orbits</title>
+    <link rel="stylesheet" href="components/TranslationOrb.css">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #00f3ff 0%, #9d4edd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #a0a0b0;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        button.active {
+            background: linear-gradient(135deg, #00f3ff 0%, #9d4edd 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Translation Orb Test</h1>
+        <p class="subtitle">Component Verification</p>
+
+        <!-- Translation Orb -->
+        <div class="translation-orb-container">
+            <div class="translation-orb-wrapper" style="width: 200px; height: 200px;">
+                <div class="translation-orb idle" id="orb" style="width: 150px; height: 150px;"></div>
+            </div>
+            
+            <div class="translation-status idle" id="status">Ready</div>
+            <div class="translation-status-detail" id="statusDetail">Click a state to test</div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="controls">
+            <button onclick="setState('idle')">Idle</button>
+            <button onclick="setState('listening')">Listening</button>
+            <button onclick="setState('translating')">Translating</button>
+        </div>
+    </div>
+
+    <script>
+        function setState(state) {
+            const orb = document.getElementById('orb');
+            const status = document.getElementById('status');
+            const statusDetail = document.getElementById('statusDetail');
+
+            // Update orb
+            orb.className = `translation-orb ${state}`;
+            
+            // Update status
+            status.className = `translation-status ${state}`;
+            
+            // Update labels
+            switch(state) {
+                case 'listening':
+                    status.textContent = 'Listening...';
+                    statusDetail.textContent = 'Speak now';
+                    break;
+                case 'translating':
+                    status.textContent = 'Translating...';
+                    statusDetail.textContent = 'Processing your speech';
+                    break;
+                case 'idle':
+                default:
+                    status.textContent = 'Ready';
+                    statusDetail.textContent = 'Click a state to test';
+            }
+
+            // Update button states
+            document.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        console.log('Translation Orb Component Test - Ready');
+    </script>
+</body>
+</html>
