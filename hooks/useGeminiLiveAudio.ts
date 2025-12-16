@@ -20,7 +20,12 @@ export interface UseGeminiLiveAudioProps {
   /** Called when translation text is available */
   onTranslationText?: (text: string) => void;
   /** State change callback */
+  /** State change callback */
   onStateChange?: (state: 'idle' | 'listening' | 'translating') => void;
+  /** Custom glossary terms { term: definition } */
+  glossary?: Record<string, string>;
+  /** Context from previous translations (Translation Memory) */
+  context?: string;
 }
 
 export interface UseGeminiLiveAudioReturn {
@@ -38,6 +43,12 @@ export interface UseGeminiLiveAudioReturn {
   stop: () => void;
   /** Last translation text */
   lastTranslation: string | null;
+  /** Detected source language */
+  detectedLanguage: string | null;
+  /** Translation confidence score */
+  confidence: number | null;
+  /** Detected speaker label */
+  speaker: string | null;
 }
 
 /**
@@ -51,7 +62,9 @@ export function useGeminiLiveAudio({
   enabled,
   onAudioOutput,
   onTranslationText,
-  onStateChange
+  onStateChange,
+  glossary = {},
+  context = ""
 }: UseGeminiLiveAudioProps): UseGeminiLiveAudioReturn {
   
   const [state, setState] = useState<'idle' | 'listening' | 'translating'>('idle');
@@ -59,6 +72,9 @@ export function useGeminiLiveAudio({
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastTranslation, setLastTranslation] = useState<string | null>(null);
+  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<number | null>(null);
+  const [speaker, setSpeaker] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   
   const wsRef = useRef<WebSocket | null>(null);
@@ -80,20 +96,24 @@ export function useGeminiLiveAudio({
    * Get translation system instruction
    */
   const getSystemInstruction = useCallback(() => {
+    const glossaryText = Object.entries(glossary).length > 0
+      ? `\n\nUSE THE FOLLOWING GLOSSARY TERMS EXACTLY:\n${Object.entries(glossary).map(([k, v]) => `- "${k}": ${v}`).join('\n')}`
+      : "";
+
     return `You are a real-time audio translator for a video call.
 
 CRITICAL INSTRUCTIONS:
 1. Listen to the speaker's voice.
 2. Automatically DETECT the source language.
 3. Translate naturally to ${targetLang}.
-4. Speak the translation with natural intonation and emotion.
-5. Preserve the speaker's tone, pace, and intent.
-6. Use native idioms appropriate for ${targetLang}.
-7. Output ONLY the translated speech - no commentary.
-8. If you are uncertain about the language, assume ${sourceLang}.
+4. Speak the translation with natural intonation in the AUDIO channel.
+5. In the TEXT channel, output ONLY a JSON object: { "detectedLanguage": "code", "confidence": 0.0-1.0, "isTranslation": true, "speaker": "Speaker 1" }.
+6. Do NOT speak the JSON. Do NOT write the translation text in the TEXT channel (unless it is the JSON). If multiple speakers are detected, differentiate them in the "speaker" field.
+${glossaryText}
+${context ? `\nCONTEXT (Translation Memory - Use these as style references):\n${context}` : ""}
 
-When you hear speech, immediately translate and speak the result.`;
-  }, [sourceLang, targetLang]);
+When you hear speech, immediately translate (Audio) and report metadata (Text).`;
+  }, [sourceLang, targetLang, glossary]);
 
   /**
    * Initialize Audio Context
@@ -196,7 +216,7 @@ When you hear speech, immediately translate and speak the result.`;
                 setup: {
                     model: `models/${MODEL_LIVE}`,
                     generation_config: {
-                        response_modalities: ["AUDIO"],
+                        response_modalities: ["AUDIO", "TEXT"], // Request TEXT for metadata
                         speech_config: {
                             voice_config: {
                                 prebuilt_voice_config: {
@@ -226,8 +246,38 @@ When you hear speech, immediately translate and speak the result.`;
                          playAudioChunk(part.inlineData.data);
                      }
                      if (part.text) {
-                         setLastTranslation(part.text);
-                         onTranslationText?.(part.text);
+                         try {
+                             // Attempt to parse JSON metadata from text channel
+                             // Expected format: JSON or text. 
+                             // We ignore raw translation text here if it's just the transcript, 
+                             // OR we use it if checking for JSON fails.
+                             
+                             // Clean potential markdown code blocks
+                             const cleanText = part.text.replace(/```json\n?|\n?```/g, '').trim();
+                             
+                             if (cleanText.startsWith('{') && cleanText.endsWith('}')) {
+                                 const metadata = JSON.parse(cleanText);
+                                 if (metadata.detectedLanguage) {
+                                     console.log('[GeminiLive] Detected Language:', metadata.detectedLanguage);
+                                     setDetectedLanguage(metadata.detectedLanguage);
+                                 }
+                                 if (metadata.confidence) {
+                                     console.log('[GeminiLive] Confidence:', metadata.confidence);
+                                     setConfidence(metadata.confidence);
+                                 }
+                                 if (metadata.speaker) {
+                                     setSpeaker(metadata.speaker);
+                                 }
+                             } else {
+                                 // Normal text backup
+                                 setLastTranslation(part.text);
+                                 onTranslationText?.(part.text);
+                             }
+                         } catch (e) {
+                             // Not JSON, treat as normal text
+                             setLastTranslation(part.text);
+                             onTranslationText?.(part.text);
+                         }
                      }
                  }
              }
@@ -419,6 +469,9 @@ When you hear speech, immediately translate and speak the result.`;
     error,
     start,
     stop,
-    lastTranslation
+    lastTranslation,
+    detectedLanguage,
+    confidence,
+    speaker
   };
 }

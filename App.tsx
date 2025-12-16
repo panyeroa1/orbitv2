@@ -32,7 +32,7 @@ import {
   Calendar, Plus, Link as LinkIcon,
   Copy, ShieldCheck, X,
   Wand2, Zap, Sparkles, FileText,
-  Share, Bot, File, Download,
+  Share, Bot, File, Download, Book,
   Mail, CheckCircle, RefreshCw,
   Volume2, Signal, Briefcase, Boxes,
   Check, Captions, UserMinus, Video as VideoIcon, Grid,
@@ -398,12 +398,24 @@ const App: React.FC = () => {
 
   // --- Audio Routing & Translation State ---
   // --- Audio Routing & Translation State ---
+  // Context for Translation Memory
+  const translationContext = React.useMemo(() => {
+      // Get recent translations to provide style context
+      return captionSegments
+          .slice(-20) // Provide last 20 segments as context
+          .map(seg => captionTranslations.get(seg.id))
+          .filter(Boolean)
+          .join('\n');
+  }, [captionSegments, captionTranslations]);
+
   const [geminiAudioStream, setGeminiAudioStream] = useState<MediaStream | null>(null);
   const [translationState, setTranslationState] = useState<'idle' | 'listening' | 'translating'>('idle');
+  const [glossary, setGlossary] = useState<Record<string, string>>({});
+  const [newTerm, setNewTerm] = useState({ term: '', def: '' });
 
   // --- Gemini Live Audio Hook ---
   // --- Gemini Live Audio Hook ---
-  const { start: startGemini, stop: stopGemini, error: geminiError, connectionState } = useGeminiLiveAudio({
+  const { start: startGemini, stop: stopGemini, error: geminiError, connectionState, detectedLanguage, confidence, speaker } = useGeminiLiveAudio({
     sessionId: sessionInfo?.id || '',
     sourceLang: 'en',
     targetLang: captionSettings.targetLanguage || 'es',
@@ -413,7 +425,10 @@ const App: React.FC = () => {
         console.log('[App] Received Gemini audio stream, routing to WebRTC');
         setGeminiAudioStream(stream);
     },
-    onStateChange: (state) => setTranslationState(state)
+
+    onStateChange: (state) => setTranslationState(state),
+    glossary,
+    context: translationContext
   });
 
   // --- WebRTC Hook ---
@@ -451,6 +466,10 @@ const App: React.FC = () => {
       else if (connectionState === 'connecting') statusText = 'Connecting...';
       else if (geminiError) statusText = 'Error';
       else if (connectionState === 'disconnected') statusText = 'Disconnected';
+      else if (detectedLanguage) {
+          const confPercent = confidence ? Math.round(confidence * 100) : 0;
+          statusText = `Detected: ${detectedLanguage.toUpperCase()} ${confPercent > 0 ? `(${confPercent}%)` : ''} ${speaker ? `- ${speaker}` : ''}`;
+      }
 
       return (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
@@ -734,8 +753,8 @@ const App: React.FC = () => {
           const transcriptText = segments.map(s => `[${new Date(s.timestamp).toLocaleTimeString()}] ${s.original}`).join('\n');
           const prompt = `You are the AI Secretary for a meeting. Summarize the following meeting transcript into key bullet points and action items:\n\n${transcriptText}`;
           
-          const response = await ai.models.generateContent({
-              model: MODEL_TRANSLATOR,
+          const model = ai.getGenerativeModel({ model: MODEL_TRANSLATOR });
+          const response = await model.generateContent({
               contents: [
                 {
                   role: 'user',
@@ -744,7 +763,7 @@ const App: React.FC = () => {
               ]
           });
           
-          setMeetingSummary(response.text || "Could not generate summary.");
+          setMeetingSummary(response.response.text() || "Could not generate summary.");
       } catch (e) {
           console.error("Summarization error", e);
           setMeetingSummary("Error generating summary.");
@@ -823,8 +842,8 @@ const App: React.FC = () => {
 
     try {
     const prompt = `Translate to ${config.targetLang}. Input: "${text}". Output ONLY the translation. Ensure the tone, style, and emotion matches the original speaker as closely as possible for a native ${config.targetLang} speaker.`;
-    const response = await ai.models.generateContent({
-      model: MODEL_TRANSLATOR,
+    const model = ai.getGenerativeModel({ model: MODEL_TRANSLATOR });
+    const result = await model.generateContent({
       contents: [
         {
           role: 'user',
@@ -832,7 +851,7 @@ const App: React.FC = () => {
         }
       ]
     });
-    const translatedText = response.text?.trim();
+    const translatedText = result.response.text()?.trim();
 
     if (translatedText) {
         setSegments(prev => prev.map(s => s.id === segmentId ? { ...s, translated: translatedText } : s));
@@ -847,20 +866,23 @@ const App: React.FC = () => {
 
   const generateAndPlayAudio = async (text: string) => {
     try {
-        const response = await ai.models.generateContent({
+        const model = ai.getGenerativeModel({ 
             model: MODEL_TTS,
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: meetingSettings.voice } } }
+            } as any
+        });
+        
+        const result = await model.generateContent({
             contents: [
               {
                 role: 'user',
                 parts: [{ text }]
               }
-            ],
-            config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: meetingSettings.voice } } }
-            }
+            ]
         });
-        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const base64Audio = result.response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
         if (base64Audio) {
             audioQueueRef.current?.enqueue({
                 pcmData: base64ToUint8Array(base64Audio),
@@ -1202,6 +1224,7 @@ const App: React.FC = () => {
                         <button onClick={copyInviteLink} className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold transition-all ${copiedLink ? 'bg-green-500 text-black' : 'bg-neon/10 text-neon hover:bg-neon/20'}`}>{copiedLink ? <Check size={16} /> : <Copy size={16} />}<span>{copiedLink ? "Copied" : "Copy Link"}</span></button>
                      </div>
                   </div>
+
                   <div className="space-y-4">
                      <h3 className="text-neon/70 text-sm font-bold uppercase tracking-wider">AI Intelligence</h3>
                      <div className="bg-black/20 p-4 rounded-xl space-y-3">
@@ -1210,6 +1233,38 @@ const App: React.FC = () => {
                         <ToggleOption label="Hear Own Translation" active={meetingSettings.hearOwnTranslation} onClick={() => setMeetingSettings(s => ({...s, hearOwnTranslation: !s.hearOwnTranslation}))} icon={<Volume2 size={16} />} />
                         <ToggleOption label="Transmit Raw Audio" active={meetingSettings.transmitRawAudio} onClick={() => setMeetingSettings(s => ({...s, transmitRawAudio: !s.transmitRawAudio}))} icon={<Signal size={16} />} />
                         <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5"><div className="flex items-center space-x-3 text-white"><Speaker size={16} /><span className="text-sm font-medium">AI Voice</span></div><select title="Select AI Voice" value={meetingSettings.voice} onChange={(e) => setMeetingSettings(s => ({...s, voice: e.target.value as any}))} className="bg-black/40 text-white text-xs p-2 rounded border border-white/10 outline-none"><option value="Aoede">Female (Aoede)</option><option value="Charon">Male (Orus)</option><option value="Puck">Male (Puck)</option><option value="Fenrir">Male (Deep)</option></select></div>
+                     </div>
+                  </div>
+                  
+                  {/* Glossary Section */}
+                  <div className="col-span-1 md:col-span-2 space-y-4 border-t border-white/10 pt-6">
+                     <h3 className="text-neon/90 text-sm font-bold uppercase tracking-wider flex items-center"><Book size={14} className="mr-2"/> Custom Glossary</h3>
+                     <div className="bg-black/40 border border-white/10 p-4 rounded-xl space-y-4">
+                         <div className="flex space-x-2">
+                            <input placeholder="Term (e.g. 'Orbits')" value={newTerm.term} onChange={e => setNewTerm({...newTerm, term: e.target.value})} className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-white focus:border-neon outline-none" />
+                            <input placeholder="Definition/Translation" value={newTerm.def} onChange={e => setNewTerm({...newTerm, def: e.target.value})} className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-white focus:border-neon outline-none" />
+                            <button onClick={() => {
+                                if (newTerm.term && newTerm.def) {
+                                    setGlossary(prev => ({ ...prev, [newTerm.term]: newTerm.def }));
+                                    setNewTerm({ term: '', def: '' });
+                                }
+                            }} className="bg-neon/20 hover:bg-neon/30 text-neon px-4 rounded-lg font-bold transition-colors">Add</button>
+                         </div>
+                         <div className="flex flex-wrap gap-2">
+                             {Object.entries(glossary).length === 0 && <span className="text-white/30 text-xs italic">No custom terms added.</span>}
+                             {Object.entries(glossary).map(([term, def]) => (
+                                 <div key={term} className="bg-white/5 border border-white/10 px-3 py-1 rounded-full flex items-center space-x-2">
+                                     <span className="text-xs text-white font-bold">{term}</span>
+                                     <span className="text-xs text-white/50">=</span>
+                                     <span className="text-xs text-neon">{def}</span>
+                                     <button title="Remove term" onClick={() => {
+                                         const newG = { ...glossary };
+                                         delete newG[term];
+                                         setGlossary(newG);
+                                     }} className="text-red-400 hover:text-red-300 ml-2"><X size={12} /></button>
+                                 </div>
+                             ))}
+                         </div>
                      </div>
                   </div>
                </div>
